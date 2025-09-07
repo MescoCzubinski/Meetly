@@ -1,0 +1,46 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap");
+@import "tailwindcss";
+
+:root {
+  font-family: "Noto Sans Mono", system-ui, "Iosevka Web",
+    "Atkinson Hyperlegible", Inter, sans-serif;
+
+  color-scheme: light dark;
+
+  --color-bg: #121212;
+  --color-light: #dcd7ba;
+  --color-dark: #181820;
+  --color-primary: #ff5d62;
+}
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+body::-webkit-scrollbar {
+  display: none;
+}
+.transition {
+  transition: all 0.3s ease-in-out;
+}
+h1 {
+  font-family: "Noto Sans Mono", system-ui, sans-serif;
+  @apply text-3xl md:text-2xl font-bold text-[var(--color-primary)];
+}
+p {
+  font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+  @apply text-2xl md:text-lg text-[var(--color-light)];
+}
+input[type="text"] {
+  font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+  @apply text-lg text-[var(--color-light)] bg-[var(--color-dark)] border border-[var(--color-light)] rounded-md p-2  cursor-pointer;
+}
+input[type="text"]:focus {
+  @apply outline-0;
+}
+a:hover {
+  @apply text-[var(--color-primary)] transition;
+}
+span {
+  @apply text-[var(--color-primary)] cursor-pointer pl-1;
+}
