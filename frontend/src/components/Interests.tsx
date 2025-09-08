@@ -9,12 +9,14 @@ export default function Interests({
     <>
       <div className="flex flex-col gap-y-5">
         <label htmlFor="interests">
-          <h1 className="">Podaj swoje zainteresowania:</h1>
+          <h1 className="">Enter your interests, then generate a QR code:</h1>
         </label>
         <div className="flex h-12">
           <input
             type="text"
             id="interests"
+            autoFocus
+            placeholder="Type your interests"
             className="flex-grow"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -27,7 +29,7 @@ export default function Interests({
             }}
           />
           <button
-            className="h-full aspect-square rounded-md ml-2 bg-[var(--color-light)] text-[var(--color-dark)] text-4xl text-center cursor-pointer"
+            className="h-full aspect-square rounded-md ml-4 bg-[var(--color-light)] text-[var(--color-dark)] text-4xl text-center cursor-pointer"
             type="submit"
             onClick={() => {
               const input = document.getElementById(

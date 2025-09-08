@@ -1,10 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap");
 @import "tailwindcss";
 
 :root {
-  font-family: "Noto Sans Mono", system-ui, "Iosevka Web",
-    "Atkinson Hyperlegible", Inter, sans-serif;
+  font-family: "Noto Sans Mono", system-ui, "Atkinson Hyperlegible", sans-serif;
 
   color-scheme: light dark;
 
@@ -25,7 +24,7 @@ body::-webkit-scrollbar {
 }
 h1 {
   font-family: "Noto Sans Mono", system-ui, sans-serif;
-  @apply text-3xl md:text-2xl font-bold text-[var(--color-primary)];
+  @apply text-3xl md:text-2xl font-bold text-[var(--color-primary)] mb-2;
 }
 p {
   font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
@@ -33,7 +32,7 @@ p {
 }
 input[type="text"] {
   font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
-  @apply text-lg text-[var(--color-light)] bg-[var(--color-dark)] border border-[var(--color-light)] rounded-md p-2  cursor-pointer;
+  @apply text-xl text-[var(--color-light)] bg-[var(--color-dark)] border border-[var(--color-light)] rounded-md p-2  cursor-pointer;
 }
 input[type="text"]:focus {
   @apply outline-0;
