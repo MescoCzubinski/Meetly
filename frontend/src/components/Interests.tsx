@@ -7,7 +7,7 @@ export default function Interests({
 }) {
   return (
     <>
-      <div className="flex flex-col gap-y-5">
+      <div className="flex flex-col gap-y-4">
         <label htmlFor="interests">
           <h1 className="">Enter your interests, then generate a QR code:</h1>
         </label>
@@ -46,18 +46,32 @@ export default function Interests({
           </button>
         </div>
         <div className="flex gap-x-4 gap-y-2 flex-wrap justify-center">
-          {interestsList.map((interest, index) => (
-            <p key={index}>
-              {interest}
-              <span
-                onClick={() =>
-                  setInterestsList(interestsList.filter((_, i) => i !== index))
-                }
-              >
-                &#215;
-              </span>
-            </p>
-          ))}
+          {interestsList.length > 0 ? (
+            interestsList.map((interest, index) => (
+              <p key={index}>
+                {interest}
+                <span
+                  onClick={() =>
+                    setInterestsList(
+                      interestsList.filter((_, i) => i !== index)
+                    )
+                  }
+                >
+                  &#215;
+                </span>
+              </p>
+            ))
+          ) : (
+            <>
+              <p className="opacity-50">E.g.</p>
+              <p className="opacity-50">
+                Fantasy books <span>&#215;</span>
+              </p>
+              <p className="opacity-50">
+                Gym <span>&#215;</span>
+              </p>
+            </>
+          )}
         </div>
       </div>
     </>

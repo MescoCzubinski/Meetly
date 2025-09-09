@@ -20,14 +20,16 @@ lorem ipsum
 ## Technologies
 
 - React,
-- TypeScript,
-- TailwindCSS,
-- qrcode.react,
-- i18next,
-- vite-plugin-svgr,
-- Vite
-- express
 - Docker
+- TypeScript,
+- Vite
+- TailwindCSS,
+
+- i18next,
+- qrcode.react,
+- express
+- cors
+- dotenv
 
 ## Installation and build
 
@@ -54,4 +56,4 @@ npm run build
 
 ## License
 
-MIT © 2025 Jan Kowalski
+© 2025 Mieszko Czubiński
