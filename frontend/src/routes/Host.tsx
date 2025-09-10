@@ -1,52 +1,84 @@
+import { useEffect, useState } from "react";
 import Container from "../components/Container";
-import Interests from "../components/Interests";
 import QRCode from "../components/QRCode";
-import { useState, useEffect } from "react";
-import { sendData } from "../api/api";
+import Name from "../components/Name";
+import Interests from "../components/Interests";
 export default function Host() {
   const URL = import.meta.env.VITE_URL;
-  const API_URL = import.meta.env.VITE_API_URL;
-  const [showQR, setShowQR] = useState(false);
-  const [code, setCode] = useState(
-    Math.floor(100000 + Math.random() * 900000).toString()
-  );
+  const [showQR, setShowQR] = useState(true);
+  const [showName, setShowName] = useState(false);
+  const [showInterests, setShowInterests] = useState(false);
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const [name, setName] = useState("");
   const [interestsList, setInterestsList] = useState<string[]>([]);
 
   useEffect(() => {
-    if (showQR) {
-      setCode(Math.floor(100000 + Math.random() * 900000).toString());
-    }
-  }, [showQR]);
-
-  useEffect(() => {
-    if (interestsList.length > 0) {
-      sendData(`${API_URL}/interests`, {
-        code: code,
-        interests: interestsList,
-      });
-    }
-  }, [showQR, interestsList, code, API_URL]);
+    const socket = new WebSocket("ws://localhost:8080");
+    socket.onmessage = ({ data }) => {
+      console.log(`Message from server: ${data}`);
+    };
+  }, []);
 
   return (
     <Container>
       <div className="flex flex-col w-full gap-y-4">
-        {showQR ? (
-          <QRCode url={URL} code={code} />
-        ) : (
-          <Interests
-            interestsList={interestsList}
-            setInterestsList={setInterestsList}
-          />
+        {showQR && (
+          <>
+            <QRCode url={URL} code={code} />
+            <button
+              type="submit"
+              className="bg-[var(--color-light)] rounded-md text-[var(--color-dark)] h-12 cursor-pointer text-2xl font-medium"
+              onClick={() => {
+                setShowQR(false);
+                setShowName(true);
+              }}
+            >
+              Next
+            </button>
+          </>
         )}
-        <button
-          type="submit"
-          className="bg-[var(--color-light)] rounded-md text-[var(--color-dark)] h-12 cursor-pointer text-2xl font-medium"
-          onClick={() => {
-            setShowQR(!showQR);
-          }}
-        >
-          {showQR ? "Undo" : "Generate QR Code"}
-        </button>
+        {showName && (
+          <>
+            <Name
+              setName={setName}
+              setShowName={setShowName}
+              setShowInterests={setShowInterests}
+            />
+            <button
+              type="submit"
+              className="bg-[var(--color-light)] rounded-md text-[var(--color-dark)] h-12 cursor-pointer text-2xl font-medium"
+              onClick={() => {
+                if (name !== "") {
+                  setShowName(false);
+                  setShowInterests(true);
+                }
+              }}
+            >
+              Send
+            </button>
+          </>
+        )}
+        {showInterests && (
+          <>
+            <Interests
+              interestsList={interestsList}
+              setInterestsList={setInterestsList}
+            />
+            <button
+              type="submit"
+              className="bg-[var(--color-light)] rounded-md text-[var(--color-dark)] h-12 cursor-pointer text-2xl font-medium"
+              onClick={() => {
+                if (interestsList.length > 0) {
+                  window.location.href =
+                    "/resume?code=" + code + "&name=" + name;
+                }
+              }}
+            >
+              Send
+            </button>
+          </>
+        )}
       </div>
     </Container>
   );

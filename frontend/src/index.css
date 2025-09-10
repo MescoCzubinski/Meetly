@@ -3,7 +3,7 @@
 @import "tailwindcss";
 
 :root {
-  font-family: "Noto Sans Mono", system-ui, "Atkinson Hyperlegible", sans-serif;
+  font-family: "Noto Sans Mono", "Atkinson Hyperlegible", "Inter";
 
   color-scheme: light dark;
 
@@ -12,12 +12,16 @@
   --color-dark: #181820;
   --color-primary: #ff5d62;
 }
-body {
+.scrollbar-hidden {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-body::-webkit-scrollbar {
+.scrollbar-hidden::-webkit-scrollbar {
   display: none;
+}
+body,
+html {
+  @apply scrollbar-hidden;
 }
 .transition {
   transition: all 0.3s ease-in-out;

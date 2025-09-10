@@ -5,7 +5,6 @@
 - [About](#about)
 - [Demo](#demo)
 - [Technologies](#technologies)
-- [Installation and build](#installation-and-build)
 - [Contact](#contact)
 - [License](#license)
 
@@ -30,19 +29,6 @@ lorem ipsum
 - express
 - cors
 - dotenv
-
-## Installation and build
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-```bash
-cd frontend
-npm run build
-```
 
 ## Contact
 

@@ -9,7 +9,7 @@ export default function Interests({
     <>
       <div className="flex flex-col gap-y-4">
         <label htmlFor="interests">
-          <h1 className="">Enter your interests, then generate a QR code:</h1>
+          <h1 className="">Enter your interests, send it:</h1>
         </label>
         <div className="flex h-12">
           <input
