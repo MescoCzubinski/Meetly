@@ -27,6 +27,7 @@ export default function Home() {
             id="interests"
             className="flex-grow"
             aria-label="input code"
+            autoComplete="off"
             placeholder="Or enter the code here"
             onInput={(e) => setCode((e.target as HTMLInputElement).value)}
             onKeyDown={(e) => {

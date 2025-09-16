@@ -21,7 +21,12 @@
 }
 body,
 html {
-  @apply scrollbar-hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+body::-webkit-scrollbar,
+html::-webkit-scrollbar {
+  display: none;
 }
 .transition {
   transition: all 0.3s ease-in-out;

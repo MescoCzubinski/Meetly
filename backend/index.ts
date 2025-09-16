@@ -1,24 +1,24 @@
-import express from "express";
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-import cors from "cors";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+import { WebSocketServer, WebSocket } from "ws";
 
-const app = express();
-app.use(express.json());
-const frontendOrigin = process.env.VITE_URL;
-app.use(
-  cors({
-    origin: frontendOrigin,
-    credentials: true,
-  })
-);
+const wss = new WebSocketServer({ port: 8080 });
 
-const port = process.env.SERVER_PORT;
-const backendUrl = process.env.VITE_API_URL;
-app.listen(port, "0.0.0.0", () => {
-  console.log(`Backend running at ${backendUrl}`);
+wss.on("connection", (ws: WebSocket) => {
+  console.log("Client connected");
+
+  ws.on("message", (data) => {
+    const message = data.toString();
+    console.log("Received:", message);
+
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  });
+
+  ws.on("close", () => {
+    console.log("Client disconnected");
+  });
 });
+
+console.log("WebSocket server running on ws://localhost:8080");

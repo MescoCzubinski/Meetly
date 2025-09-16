@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useWebSocket } from "../hooks/useWebSocket";
 import Container from "../components/Container";
 import QRCode from "../components/QRCode";
 import Name from "../components/Name";
@@ -9,16 +10,21 @@ export default function Host() {
   const [showName, setShowName] = useState(false);
   const [showInterests, setShowInterests] = useState(false);
 
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const [code] = useState(
+    Math.floor(100000 + Math.random() * 900000).toString()
+  );
   const [name, setName] = useState("");
   const [interestsList, setInterestsList] = useState<string[]>([]);
 
-  useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8080");
-    socket.onmessage = ({ data }) => {
-      console.log(`Message from server: ${data}`);
-    };
-  }, []);
+  const { isConnected, sendMessage } = useWebSocket(
+    `ws://localhost:8080/${code}`
+  );
+
+  const handleSend = () => {
+    if (isConnected) {
+      sendMessage(name, interestsList);
+    }
+  };
 
   return (
     <Container>
@@ -73,6 +79,7 @@ export default function Host() {
                   window.location.href =
                     "/resume?code=" + code + "&name=" + name;
                 }
+                handleSend();
               }}
             >
               Send

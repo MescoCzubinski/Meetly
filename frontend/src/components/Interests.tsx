@@ -16,6 +16,7 @@ export default function Interests({
             type="text"
             id="interests"
             autoFocus
+            autoComplete="off"
             placeholder="Type your interests"
             className="flex-grow"
             onKeyDown={(e) => {

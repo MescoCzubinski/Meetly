@@ -18,6 +18,7 @@ export default function Name({
             type="text"
             id="name"
             autoFocus
+            autoComplete="off"
             placeholder="Enter your name"
             className="flex-grow"
             onKeyDown={(e) => {

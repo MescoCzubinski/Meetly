@@ -4,16 +4,11 @@ services:
   backend:
     build:
       context: "./backend"
-    environment:
-      - SERVER_PORT=${SERVER_PORT}
-      - VITE_API_URL=${VITE_API_URL}
-      - VITE_URL=${VITE_URL}
-      - FRONTEND_URL=${VITE_URL}
     volumes:
       - ./backend:/app
       - /app/node_modules
     ports:
-      - 5000:${SERVER_PORT}
+      - "8080:8080"
     command: npm run dev
 
   frontend:

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useWebSocket } from "../hooks/useWebSocket";
 import Container from "../components/Container";
 import Name from "../components/Name";
 import Interests from "../components/Interests";
@@ -17,6 +18,16 @@ export default function Guest() {
 
   const [name, setName] = useState("");
   const [interestsList, setInterestsList] = useState<string[]>([]);
+
+  const { isConnected, sendMessage } = useWebSocket(
+    `ws://localhost:8080/${code}`
+  );
+
+  const handleSend = () => {
+    if (isConnected) {
+      sendMessage(name, interestsList);
+    }
+  };
 
   return (
     <Container>
@@ -57,6 +68,7 @@ export default function Guest() {
                     window.location.href =
                       "/resume?code=" + code + "&name=" + name;
                   }
+                  handleSend();
                 }}
               >
                 Send
