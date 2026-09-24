@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useWebSocket } from "../hooks/useWebSocket";
 
 export default function App() {
-  const { messages, isConnected, sendMessage } = useWebSocket(
-    "ws://localhost:8080"
+  const { answers, isConnected, sendMessage } = useWebSocket(
+    new URLSearchParams(window.location.search).get("code") || ""
   );
   const [input, setInput] = useState("");
 
@@ -33,13 +33,13 @@ export default function App() {
       </div>
 
       <div>
-        <h3>Messages:</h3>
-        {messages.map((msg, i) => (
+        <h3>Answers:</h3>
+        {answers.map((answer, i) => (
           <div
             key={i}
             style={{ padding: "5px", background: "#f0f0f0", margin: "5px 0" }}
           >
-            {msg}
+            {JSON.stringify(answer)}
           </div>
         ))}
       </div>

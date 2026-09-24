@@ -1,20 +1,26 @@
 import { useState, useEffect } from "react";
+import { WS_URL } from "../api";
 
-export const useWebSocket = (url: string) => {
+export type Answer = { name: string; interests: string[] };
+
+export const useWebSocket = (code: string) => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [messages, setMessages] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<Answer[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket(url);
+    if (!code) return;
+    const ws = new WebSocket(`${WS_URL}/session?code=${code}`);
 
     ws.onopen = () => {
       setIsConnected(true);
       setSocket(ws);
     };
 
-    ws.onmessage = (event) => {
-      setMessages((prev) => [...prev, event.data]);
+    ws.onmessage = (message) => {
+      const { event, data } = JSON.parse(message.data);
+      if (event === "answers") setAnswers(data);
+      if (event === "answer") setAnswers((prev) => [...prev, data]);
     };
 
     ws.onclose = () => {
@@ -23,13 +29,13 @@ export const useWebSocket = (url: string) => {
     };
 
     return () => ws.close();
-  }, [url]);
+  }, [code]);
 
   const sendMessage = (name: string, interests: string[]) => {
     if (socket && isConnected) {
-      socket.send(JSON.stringify({ name, interests }));
+      socket.send(JSON.stringify({ event: "answer", data: { name, interests } }));
     }
   };
 
-  return { messages, isConnected, sendMessage };
+  return { answers, isConnected, sendMessage };
 };
