@@ -1,24 +1,51 @@
+import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
+import { Button } from "@/components/ui/button";
+
+const link = (url: string, code: string) => url + "?code=" + code;
+const randomCode = () => Math.floor(100000 + Math.random() * 900000).toString();
+const scramble = (url: string) => ({
+  code: randomCode(),
+  qr: Array.from({ length: link(url, randomCode()).length }, () =>
+    String.fromCharCode(33 + Math.floor(Math.random() * 94)),
+  ).join(""),
+});
 
 export default function QRCode({ url, code }: { url: string; code: string }) {
-  const color = getComputedStyle(document.documentElement)
-    .getPropertyValue("--color-light")
-    .trim();
+  const [copied, setCopied] = useState(false);
+  const [scrambled, setScrambled] = useState(() => scramble(url));
+
+  useEffect(() => {
+    if (code) return;
+    const interval = setInterval(() => setScrambled(scramble(url)), 100);
+    return () => clearInterval(interval);
+  }, [code, url]);
 
   return (
-    <div className="flex w-full justify-center flex-col gap-y-4">
-      <div className="border-2 border-[var(--color-light)] rounded-md text-[var(--color-light)] h-12 cursor-pointer text-2xl flex items-center justify-center">
-        {code}
+    <div className="flex w-full flex-col gap-4">
+      <Button
+        aria-label="Copy code"
+        className="h-14 w-full text-2xl font-heading disabled:opacity-100 data-disabled:opacity-100"
+        disabled={!code}
+        onClick={() => {
+          navigator.clipboard?.writeText(code).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1300);
+          });
+        }}
+      >
+        {copied ? "Copied!" : code || scrambled.code}
+      </Button>
+      <div className="rounded-base border-2 border-border bg-secondary-background shadow-shadow p-4">
+        <QRCodeCanvas
+          value={code ? link(url, code) : scrambled.qr}
+          size={1024}
+          bgColor="transparent"
+          fgColor="#000000"
+          level="H"
+          style={{ width: "100%", height: "auto" }}
+        />
       </div>
-      <QRCodeCanvas
-        value={url + "?code=" + code}
-        size={1024}
-        bgColor="transparent"
-        fgColor={color}
-        level="H"
-        className="rounded-md"
-        style={{ width: "100%", height: "auto" }}
-      />
     </div>
   );
 }

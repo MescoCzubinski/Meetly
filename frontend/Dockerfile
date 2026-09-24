@@ -19,4 +19,4 @@ RUN npm install -g serve@14
 COPY --from=build /app/dist /app
 USER node
 EXPOSE 3000
-CMD ["serve", "-s", "/app", "-l", "3000"]
+CMD ["serve", "/app", "-l", "3000"]
