@@ -1,40 +1,38 @@
+import { useState } from "react";
+import InputWithButton from "./InputWithButton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+
 export default function Name({
-  setName,
-  setShowName,
-  setShowInterests,
+  onSubmit,
 }: {
-  setName: (name: string) => void;
-  setShowName: (show: boolean) => void;
-  setShowInterests: (show: boolean) => void;
+  onSubmit: (name: string) => void;
 }) {
+  const [name, setName] = useState("");
+
   return (
-    <>
-      <div className="flex flex-col gap-y-4">
-        <label htmlFor="name">
-          <h1 className="">Enter your name, confirm:</h1>
-        </label>
-        <div className="flex h-12">
-          <input
-            type="text"
-            id="name"
-            autoFocus
-            autoComplete="off"
-            placeholder="Enter your name"
-            className="flex-grow"
-            onKeyDown={(e) => {
-              const value = (e.target as HTMLInputElement).value.trim();
-              if (value) {
-                setName(value);
-              }
-              if (e.key === "Enter" && value) {
-                setName(value);
-                setShowName(false);
-                setShowInterests(true);
-              }
-            }}
-          />
-        </div>
-      </div>
-    </>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>
+          <Label htmlFor="name" className="text-2xl">
+            Enter your name:
+          </Label>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <InputWithButton
+          id="name"
+          autoFocus
+          placeholder="Enter your name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onSubmit={() => {
+            const value = name.trim();
+            if (value) onSubmit(value);
+          }}
+          button="Next"
+        />
+      </CardContent>
+    </Card>
   );
 }

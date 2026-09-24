@@ -20,7 +20,12 @@ export const useWebSocket = (code: string) => {
     ws.onmessage = (message) => {
       const { event, data } = JSON.parse(message.data);
       if (event === "answers") setAnswers(data);
-      if (event === "answer") setAnswers((prev) => [...prev, data]);
+      if (event === "answer")
+        setAnswers((prev) =>
+          prev.some((a) => a.name === data.name)
+            ? prev.map((a) => (a.name === data.name ? data : a))
+            : [...prev, data],
+        );
     };
 
     ws.onclose = () => {
@@ -33,9 +38,11 @@ export const useWebSocket = (code: string) => {
 
   const sendMessage = (name: string, interests: string[]) => {
     if (socket && isConnected) {
-      socket.send(JSON.stringify({ event: "answer", data: { name, interests } }));
+      socket.send(
+        JSON.stringify({ event: "answer", data: { name, interests } }),
+      );
     }
   };
 
-  return { answers, isConnected, sendMessage };
+  return { answers, sendMessage };
 };
