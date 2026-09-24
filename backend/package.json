@@ -1,19 +1,19 @@
 {
-  "name": "meetly",
-  "version": "1.0.0",
-  "main": "index.ts",
   "scripts": {
-    "dev": "ts-node index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "bun --watch src/main.ts",
+    "build": "bun build.ts",
+    "lint": "oxlint"
   },
   "dependencies": {
-    "http": "^0.0.1-security",
-    "ws": "^8.18.3"
+    "@nestjs/common": "^12.1.0",
+    "@nestjs/core": "^12.1.0",
+    "@nestjs/platform-express": "^12.1.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
-    "@types/node": "^24.4.0",
-    "@types/ws": "^8.18.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "@types/bun": "^1.4.2",
+    "oxlint": "^1.85.0",
+    "typescript": "^7.0.2"
   }
 }

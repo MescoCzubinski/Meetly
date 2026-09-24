@@ -4,12 +4,13 @@ services:
   backend:
     build:
       context: "./backend"
+      target: dev
     volumes:
       - ./backend:/app
       - /app/node_modules
     ports:
       - "8080:8080"
-    command: npm run dev
+    command: bun run dev
 
   frontend:
     build:
