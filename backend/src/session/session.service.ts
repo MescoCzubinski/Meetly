@@ -41,7 +41,12 @@ export class SessionService {
   }
 
   addAnswer(code: string, answer: AnswerDto): void {
-    this.get(code)?.answers.push(answer);
+    const answers = this.get(code)?.answers;
+    if (!answers) return;
+
+    const index = answers.findIndex((a) => a.name === answer.name);
+    if (index === -1) answers.push(answer);
+    else answers[index] = answer;
   }
 
   onExpired(listener: (code: string) => void): void {
