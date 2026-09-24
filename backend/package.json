@@ -1,18 +1,24 @@
 {
   "scripts": {
-    "dev": "bun --watch src/main.ts",
+    "dev": "bun --env-file ../.env --watch src/main.ts",
     "build": "bun build.ts",
-    "lint": "oxlint"
+    "lint": "oxlint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@nestjs/common": "^12.1.0",
     "@nestjs/core": "^12.1.0",
     "@nestjs/platform-express": "^12.1.0",
+    "@nestjs/platform-ws": "^12.1.0",
+    "@nestjs/websockets": "^12.1.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@types/bun": "^1.4.2",
+    "@types/ws": "^8.18.1",
     "oxlint": "^1.85.0",
     "typescript": "^7.0.2"
   }

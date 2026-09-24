@@ -1,7 +1,3 @@
 node_modules
 dist
-Dockerfile
-.dockerignore
-.oxlintrc.json
-*.log
 .env*
