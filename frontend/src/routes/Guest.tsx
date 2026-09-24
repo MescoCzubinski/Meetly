@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useWebSocket } from "../hooks/useWebSocket";
 import Container from "../components/Container";
 import Name from "../components/Name";
 import Interests from "../components/Interests";
 export default function Guest() {
+  const navigate = useNavigate();
   const [code] = useState(window.location.search.replace("?code=", ""));
   const [isCodeProperly] = useState(code.length === 6 && !isNaN(Number(code)));
 
@@ -19,9 +21,7 @@ export default function Guest() {
   const [name, setName] = useState("");
   const [interestsList, setInterestsList] = useState<string[]>([]);
 
-  const { isConnected, sendMessage } = useWebSocket(
-    `ws://localhost:8080/${code}`
-  );
+  const { isConnected, sendMessage } = useWebSocket(code);
 
   const handleSend = () => {
     if (isConnected) {
@@ -65,10 +65,9 @@ export default function Guest() {
                 className="bg-[var(--color-light)] rounded-md text-[var(--color-dark)] h-12 cursor-pointer text-2xl font-medium"
                 onClick={() => {
                   if (interestsList.length > 0) {
-                    window.location.href =
-                      "/resume?code=" + code + "&name=" + name;
+                    handleSend();
+                    navigate("/resume?code=" + code + "&name=" + name);
                   }
-                  handleSend();
                 }}
               >
                 Send

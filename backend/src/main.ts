@@ -1,0 +1,9 @@
+import { NestFactory } from "@nestjs/core";
+import { WsAdapter } from "@nestjs/platform-ws";
+import { AppModule } from "./app.module";
+import { config } from "./common/config";
+
+const app = await NestFactory.create(AppModule);
+app.enableCors({ origin: config.corsOrigin });
+app.useWebSocketAdapter(new WsAdapter(app));
+await app.listen(config.port);
