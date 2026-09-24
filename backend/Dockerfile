@@ -11,3 +11,8 @@ CMD ["bun", "run", "dev"]
 FROM base AS build
 COPY . .
 RUN bun run build
+
+FROM gcr.io/distroless/base-debian12:nonroot AS prod
+COPY --from=build /app/dist/server /server
+EXPOSE 8080
+CMD ["/server"]

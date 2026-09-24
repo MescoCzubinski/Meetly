@@ -5,18 +5,23 @@ services:
     build:
       context: "./backend"
       target: dev
+    environment:
+      - PORT=${PORT}
+      - CORS_ORIGIN=${CORS_ORIGIN}
     volumes:
       - ./backend:/app
       - /app/node_modules
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:${PORT:-8080}"
     command: bun run dev
 
   frontend:
     build:
       context: "./frontend"
+      target: dev
     environment:
       - VITE_API_URL=${VITE_API_URL}
+      - VITE_URL=${VITE_URL}
     volumes:
       - ./frontend:/app
       - /app/node_modules
