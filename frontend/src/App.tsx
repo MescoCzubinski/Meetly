@@ -1,9 +1,12 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { Info } from "lucide-react";
 import Home from "./views/Home.tsx";
 import Guest from "./views/Guest.tsx";
 import Host from "./views/Host.tsx";
 import Answers from "./views/Answers.tsx";
 import Header from "./components/Header.tsx";
+import AboutModal from "./components/modals/AboutModal.tsx";
+import { Button } from "@/components/ui/button";
 import { loadSessions, saveSession, type Session } from "./storage.ts";
 
 type State =
@@ -31,6 +34,7 @@ export default function App() {
   const [state, setState] = useState<State>(initialState);
 
   const [sessions, setSessions] = useState<Session[]>(loadSessions);
+  const [showingAbout, setShowingAbout] = useState(false);
 
   useEffect(() => window.history.replaceState(state, ""), [state]);
 
@@ -101,6 +105,15 @@ export default function App() {
         <Header favicon={favicon} onHome={goHome} />
       )}
       {view}
+      <Button
+        variant="neutral"
+        aria-label="About Meetly"
+        className="fixed right-4 bottom-4 z-10 size-13 [&_svg]:size-6"
+        onClick={() => setShowingAbout(true)}
+      >
+        <Info />
+      </Button>
+      <AboutModal open={showingAbout} onOpenChange={setShowingAbout} />
     </>
   );
 }
