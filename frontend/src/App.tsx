@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Home from "./views/Home.tsx";
 import Guest from "./views/Guest.tsx";
 import Host from "./views/Host.tsx";
@@ -32,29 +32,33 @@ export default function App() {
 
   const isGuest =
     state.view === "guest" || (state.view === "answers" && state.guest);
+  const favicon = isGuest ? "/favicon-card.ico" : "/favicon-main.ico";
   useEffect(() => {
     const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (icon) icon.href = isGuest ? "/favicon-card.ico" : "/favicon-main.ico";
-  }, [isGuest]);
+    if (icon) icon.href = favicon;
+  }, [favicon]);
 
+  let view: ReactNode;
   switch (state.view) {
     case "home":
-      return (
+      view = (
         <Home
           onHost={() => setState({ view: "host" })}
           onJoin={(code) => setState({ view: "guest", code })}
         />
       );
+      break;
     case "host":
-      return (
+      view = (
         <Host
           onDone={(code, name) =>
             setState({ view: "answers", code, name, guest: false })
           }
         />
       );
+      break;
     case "guest":
-      return (
+      view = (
         <Guest
           code={state.code}
           onDone={(name) =>
@@ -63,7 +67,19 @@ export default function App() {
           onHome={() => setState({ view: "home" })}
         />
       );
+      break;
     case "answers":
-      return <Answers code={state.code} name={state.name} />;
+      view = <Answers code={state.code} name={state.name} />;
+      break;
   }
+
+  return (
+    <>
+      <header className="fixed top-4 left-4 z-10 flex items-center gap-2 rounded-base border-2 border-border bg-secondary-background px-4 py-2 shadow-shadow cursor-default">
+        <img src={favicon} alt="" className="size-8" />
+        <span className="text-2xl font-heading">Meetly</span>
+      </header>
+      {view}
+    </>
+  );
 }
