@@ -1,7 +1,8 @@
 import { randomInt } from "node:crypto";
 import { Injectable } from "@nestjs/common";
-import type { AnswerDto } from "./answer.dto";
+import type { AnswerDto } from "../handlers/answer.dto";
 import { EmbeddingService } from "./embedding.service";
+import { SessionNotFoundException } from "../exceptions/not-found";
 
 interface Session {
   answers: AnswerDto[];
@@ -36,6 +37,10 @@ export class SessionService {
 
   exists(code: string): boolean {
     return this.get(code) !== undefined;
+  }
+
+  assertExists(code: string): void {
+    if (!this.exists(code)) throw new SessionNotFoundException(code);
   }
 
   getAnswers(code: string): AnswerDto[] {

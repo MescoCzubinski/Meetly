@@ -11,7 +11,7 @@ import {
 } from "@nestjs/websockets";
 import type { WebSocket } from "ws";
 import { AnswerDto } from "./answer.dto";
-import { SessionService } from "./session.service";
+import { SessionService } from "../services/session.service";
 
 @WebSocketGateway({ path: "/session" })
 export class SessionGateway
