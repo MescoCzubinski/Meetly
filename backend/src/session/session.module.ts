@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common";
-import { SessionController } from "./session.controller";
-import { SessionGateway } from "./session.gateway";
-import { SessionService } from "./session.service";
+import { EmbeddingService } from "./services/embedding.service";
+import { SessionController } from "./handlers/session.controller";
+import { SessionGateway } from "./handlers/session.gateway";
+import { SessionService } from "./services/session.service";
 
 @Module({
   controllers: [SessionController],
-  providers: [SessionService, SessionGateway],
+  providers: [SessionService, SessionGateway, EmbeddingService],
 })
 export class SessionModule {}

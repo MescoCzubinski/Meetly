@@ -16,6 +16,7 @@ export default function InterestInput({
       id="interests"
       autoFocus={autoFocus}
       placeholder="Type your interests"
+      maxLength={20}
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onSubmit={() => {

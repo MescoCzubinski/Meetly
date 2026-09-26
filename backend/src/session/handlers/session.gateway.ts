@@ -11,7 +11,7 @@ import {
 } from "@nestjs/websockets";
 import type { WebSocket } from "ws";
 import { AnswerDto } from "./answer.dto";
-import { SessionService } from "./session.service";
+import { SessionService } from "../services/session.service";
 
 @WebSocketGateway({ path: "/session" })
 export class SessionGateway
@@ -35,12 +35,7 @@ export class SessionGateway
     }
 
     this.clients.set(client, code);
-    client.send(
-      JSON.stringify({
-        event: "answers",
-        data: this.sessionService.getAnswers(code),
-      }),
-    );
+    client.send(this.sessionMessage(code));
   }
 
   handleDisconnect(client: WebSocket) {
@@ -54,18 +49,28 @@ export class SessionGateway
       exceptionFactory: () => new WsException("Invalid answer"),
     }),
   )
-  handleAnswer(
+  async handleAnswer(
     @ConnectedSocket() client: WebSocket,
     @MessageBody() answer: AnswerDto,
   ) {
     const code = this.clients.get(client);
     if (!code || !this.sessionService.exists(code)) return;
 
-    this.sessionService.addAnswer(code, answer);
+    await this.sessionService.addAnswer(code, answer);
 
-    const message = JSON.stringify({ event: "answer", data: answer });
+    const message = this.sessionMessage(code);
     for (const [other, otherCode] of this.clients) {
       if (otherCode === code) other.send(message);
     }
+  }
+
+  private sessionMessage(code: string) {
+    return JSON.stringify({
+      event: "session",
+      data: {
+        answers: this.sessionService.getAnswers(code),
+        links: this.sessionService.getLinks(code),
+      },
+    });
   }
 }

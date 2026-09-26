@@ -1,0 +1,47 @@
+import Modal from "./Modal";
+
+const link = "underline underline-offset-2";
+
+export default function AboutModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Modal open={open} onOpenChange={onOpenChange} title="About Meetly">
+      <div className="flex flex-col gap-3">
+        <p>Meetly helps people in one room find each other.</p>
+        <p>
+          Interests are matched by meaning, not spelling, using the{" "}
+          <a
+            className={link}
+            href="https://huggingface.co/Xenova/paraphrase-multilingual-MiniLM-L12-v2"
+            target="_blank"
+            rel="noreferrer"
+          >
+            paraphrase-multilingual-MiniLM-L12-v2
+          </a>{" "}
+          embedding model.
+        </p>
+        <p>
+          The UI is built with{" "}
+          <a
+            className={link}
+            href="https://www.neobrutalism.dev"
+            target="_blank"
+            rel="noreferrer"
+          >
+            neobrutalism.dev
+          </a>{" "}
+          components (shadcn/ui on Base UI).
+        </p>
+        <p>
+          The colors come from Vincent van Gogh's Vase with Twelve Sunflowers
+          painting.
+        </p>
+      </div>
+    </Modal>
+  );
+}

@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { WS_URL } from "../api";
 
 export type Answer = { name: string; interests: string[] };
+export type Link = [string, string, number];
 
 export const useWebSocket = (code: string) => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [answers, setAnswers] = useState<Answer[]>([]);
+  const [session, setSession] = useState<{ answers: Answer[]; links: Link[] }>(
+    { answers: [], links: [] },
+  );
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
@@ -19,13 +22,7 @@ export const useWebSocket = (code: string) => {
 
     ws.onmessage = (message) => {
       const { event, data } = JSON.parse(message.data);
-      if (event === "answers") setAnswers(data);
-      if (event === "answer")
-        setAnswers((prev) =>
-          prev.some((a) => a.name === data.name)
-            ? prev.map((a) => (a.name === data.name ? data : a))
-            : [...prev, data],
-        );
+      if (event === "session") setSession(data);
     };
 
     ws.onclose = () => {
@@ -44,5 +41,5 @@ export const useWebSocket = (code: string) => {
     }
   };
 
-  return { answers, sendMessage };
+  return { ...session, sendMessage };
 };
