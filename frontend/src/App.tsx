@@ -3,6 +3,8 @@ import Home from "./views/Home.tsx";
 import Guest from "./views/Guest.tsx";
 import Host from "./views/Host.tsx";
 import Answers from "./views/Answers.tsx";
+import Header from "./components/Header.tsx";
+import { loadSessions, saveSession, type Session } from "./storage.ts";
 
 type State =
   | { view: "home" }
@@ -28,7 +30,15 @@ const initialState = ((): State => {
 export default function App() {
   const [state, setState] = useState<State>(initialState);
 
+  const [sessions, setSessions] = useState<Session[]>(loadSessions);
+
   useEffect(() => window.history.replaceState(state, ""), [state]);
+
+  useEffect(() => {
+    if (state.view !== "answers") return;
+    const { code, name, guest } = state;
+    setSessions(saveSession({ code, name, guest }));
+  }, [state]);
 
   const isGuest =
     state.view === "guest" || (state.view === "answers" && state.guest);
@@ -38,6 +48,9 @@ export default function App() {
     if (icon) icon.href = favicon;
   }, [favicon]);
 
+  const goHome =
+    state.view === "home" ? undefined : () => setState({ view: "home" });
+
   let view: ReactNode;
   switch (state.view) {
     case "home":
@@ -45,6 +58,8 @@ export default function App() {
         <Home
           onHost={() => setState({ view: "host" })}
           onJoin={(code) => setState({ view: "guest", code })}
+          sessions={sessions}
+          onResume={(session) => setState({ view: "answers", ...session })}
         />
       );
       break;
@@ -69,16 +84,22 @@ export default function App() {
       );
       break;
     case "answers":
-      view = <Answers code={state.code} name={state.name} />;
+      view = (
+        <Answers
+          code={state.code}
+          name={state.name}
+          favicon={favicon}
+          onHome={goHome}
+        />
+      );
       break;
   }
 
   return (
     <>
-      <header className="fixed top-4 left-4 z-10 flex items-center gap-2 rounded-base border-2 border-border bg-secondary-background px-4 py-2 shadow-shadow cursor-default">
-        <img src={favicon} alt="" className="size-8" />
-        <span className="text-2xl font-heading">Meetly</span>
-      </header>
+      {state.view !== "answers" && (
+        <Header favicon={favicon} onHome={goHome} />
+      )}
       {view}
     </>
   );
