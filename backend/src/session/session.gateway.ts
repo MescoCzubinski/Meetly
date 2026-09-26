@@ -35,12 +35,7 @@ export class SessionGateway
     }
 
     this.clients.set(client, code);
-    client.send(
-      JSON.stringify({
-        event: "answers",
-        data: this.sessionService.getAnswers(code),
-      }),
-    );
+    client.send(this.sessionMessage(code));
   }
 
   handleDisconnect(client: WebSocket) {
@@ -63,9 +58,19 @@ export class SessionGateway
 
     this.sessionService.addAnswer(code, answer);
 
-    const message = JSON.stringify({ event: "answer", data: answer });
+    const message = this.sessionMessage(code);
     for (const [other, otherCode] of this.clients) {
       if (otherCode === code) other.send(message);
     }
+  }
+
+  private sessionMessage(code: string) {
+    return JSON.stringify({
+      event: "session",
+      data: {
+        answers: this.sessionService.getAnswers(code),
+        links: this.sessionService.getLinks(code),
+      },
+    });
   }
 }

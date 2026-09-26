@@ -40,6 +40,20 @@ export class SessionService {
     return this.get(code)?.answers ?? [];
   }
 
+  getLinks(code: string): [string, string, number][] {
+    const answers = this.getAnswers(code);
+    const links: [string, string, number][] = [];
+    answers.forEach((a, i) =>
+      answers.slice(i + 1).forEach((b) => {
+        const strength = a.interests.flatMap((x) =>
+          b.interests.filter((y) => x === y),
+        ).length;
+        if (strength > 0) links.push([a.name, b.name, strength]);
+      }),
+    );
+    return links;
+  }
+
   addAnswer(code: string, answer: AnswerDto): void {
     const answers = this.get(code)?.answers;
     if (!answers) return;
