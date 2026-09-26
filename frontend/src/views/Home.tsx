@@ -27,7 +27,7 @@ export default function Home({
         <CardHeader>
           <CardTitle>
             <h1 className="text-2xl leading-tight">
-              Hi, I'm meetly. Do you want to get somebody know?
+              Hi, I'm meetly! Do you want to get somebody know?
             </h1>
           </CardTitle>
         </CardHeader>
