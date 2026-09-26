@@ -49,14 +49,14 @@ export class SessionGateway
       exceptionFactory: () => new WsException("Invalid answer"),
     }),
   )
-  handleAnswer(
+  async handleAnswer(
     @ConnectedSocket() client: WebSocket,
     @MessageBody() answer: AnswerDto,
   ) {
     const code = this.clients.get(client);
     if (!code || !this.sessionService.exists(code)) return;
 
-    this.sessionService.addAnswer(code, answer);
+    await this.sessionService.addAnswer(code, answer);
 
     const message = this.sessionMessage(code);
     for (const [other, otherCode] of this.clients) {

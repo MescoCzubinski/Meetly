@@ -1,6 +1,7 @@
 import { randomInt } from "node:crypto";
 import { Injectable } from "@nestjs/common";
 import type { AnswerDto } from "./answer.dto";
+import { EmbeddingService } from "./embedding.service";
 
 interface Session {
   answers: AnswerDto[];
@@ -9,13 +10,14 @@ interface Session {
 
 const SESSION_TTL = 60 * 60 * 1000; // 1 hour
 const CLEANUP_INTERVAL = 60 * 1000; // 1 minute
+const SIMILARITY_THRESHOLD = 0.6;
 
 @Injectable()
 export class SessionService {
   private readonly sessions = new Map<string, Session>();
   private readonly expiredListeners: ((code: string) => void)[] = [];
 
-  constructor() {
+  constructor(private readonly embeddingService: EmbeddingService) {
     setInterval(() => this.removeExpired(), CLEANUP_INTERVAL);
   }
 
@@ -45,22 +47,25 @@ export class SessionService {
     const links: [string, string, number][] = [];
     answers.forEach((a, i) =>
       answers.slice(i + 1).forEach((b) => {
-        const strength = a.interests.flatMap((x) =>
-          b.interests.filter((y) => x === y),
-        ).length;
+        const strength =
+          (this.match(a.interests, b.interests) +
+            this.match(b.interests, a.interests)) /
+          2;
         if (strength > 0) links.push([a.name, b.name, strength]);
       }),
     );
     return links;
   }
 
-  addAnswer(code: string, answer: AnswerDto): void {
+  async addAnswer(code: string, answer: AnswerDto): Promise<void> {
     const answers = this.get(code)?.answers;
     if (!answers) return;
 
     const index = answers.findIndex((a) => a.name === answer.name);
     if (index === -1) answers.push(answer);
     else answers[index] = answer;
+
+    await this.embeddingService.embed(answer.interests);
   }
 
   onExpired(listener: (code: string) => void): void {
@@ -74,6 +79,19 @@ export class SessionService {
         this.expiredListeners.forEach((listener) => listener(code));
       }
     }
+  }
+
+  private match(from: string[], to: string[]): number {
+    return from.reduce((sum, x) => {
+      const best = Math.max(
+        0,
+        ...to.map((y) => this.embeddingService.similarity(x, y)),
+      );
+      return (
+        sum +
+        Math.max(0, (best - SIMILARITY_THRESHOLD) / (1 - SIMILARITY_THRESHOLD))
+      );
+    }, 0);
   }
 
   private get(code: string): Session | undefined {
