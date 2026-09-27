@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Info } from "lucide-react";
+import { isValidCode } from "@/lib/api";
 import Home from "@/views/Home";
 import Guest from "@/views/Guest";
 import Host from "@/views/Host";
@@ -8,7 +9,7 @@ import Background from "@/components/Background";
 import Header from "@/components/Header";
 import AboutModal from "@/components/modals/AboutModal";
 import { Button } from "@/components/ui/button";
-import { loadSessions, saveSession, type Session } from "@/storage";
+import { loadSessions, saveSession, type Session } from "@/lib/storage";
 
 type State =
   | { view: "home" }
@@ -53,7 +54,7 @@ export default function App() {
     state.view === "host"
       ? hostCode
       : state.view === "answers" ||
-          (state.view === "guest" && /^\d{6}$/.test(state.code))
+          (state.view === "guest" && isValidCode(state.code))
         ? state.code
         : undefined;
 

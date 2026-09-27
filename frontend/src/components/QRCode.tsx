@@ -1,26 +1,25 @@
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { copyInviteLink } from "@/utils/copyInviteLink";
+import { copyInviteLink, inviteLink } from "@/utils/copyInviteLink";
 import { Button } from "@/components/ui/button";
 
-const link = (url: string, code: string) => url + "?code=" + code;
 const randomCode = () => Math.floor(100000 + Math.random() * 900000).toString();
-const scramble = (url: string) => ({
+const scramble = () => ({
   code: randomCode(),
-  qr: Array.from({ length: link(url, randomCode()).length }, () =>
+  qr: Array.from({ length: inviteLink(randomCode()).length }, () =>
     String.fromCharCode(33 + Math.floor(Math.random() * 94)),
   ).join(""),
 });
 
-export default function QRCode({ url, code }: { url: string; code: string }) {
+export default function QRCode({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
-  const [scrambled, setScrambled] = useState(() => scramble(url));
+  const [scrambled, setScrambled] = useState(scramble);
 
   useEffect(() => {
     if (code) return;
-    const interval = setInterval(() => setScrambled(scramble(url)), 100);
+    const interval = setInterval(() => setScrambled(scramble()), 100);
     return () => clearInterval(interval);
-  }, [code, url]);
+  }, [code]);
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -34,7 +33,7 @@ export default function QRCode({ url, code }: { url: string; code: string }) {
       </Button>
       <div className="rounded-base border-2 border-border bg-secondary-background shadow-shadow p-4">
         <QRCodeCanvas
-          value={code ? link(url, code) : scrambled.qr}
+          value={code ? inviteLink(code) : scrambled.qr}
           size={1024}
           bgColor="transparent"
           fgColor="#000000"

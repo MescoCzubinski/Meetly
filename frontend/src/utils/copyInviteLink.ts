@@ -1,7 +1,7 @@
 export const inviteLink = (code: string) =>
   `${import.meta.env.VITE_URL}?code=${code}`;
 
-export const copyText = (
+const copyText = (
   text: string,
   setCopied: (copied: boolean) => void,
 ) => {

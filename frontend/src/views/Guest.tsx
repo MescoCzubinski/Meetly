@@ -1,3 +1,4 @@
+import { isValidCode } from "@/lib/api";
 import Container from "@/components/Container";
 import Profile from "@/components/Profile";
 import { Button } from "@/components/ui/button";
@@ -18,11 +19,9 @@ export default function Guest({
   onDone: (name: string) => void;
   onHome: () => void;
 }) {
-  const isCodeProperly = code.length === 6 && !isNaN(Number(code));
-
   return (
     <Container>
-      {isCodeProperly ? (
+      {isValidCode(code) ? (
         <Profile code={code} onDone={onDone} />
       ) : (
         <Card className="w-full">

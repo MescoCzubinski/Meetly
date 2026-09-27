@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { QrCode } from "lucide-react";
-import { API_URL } from "@/api";
-import { loadHostToken } from "@/storage";
+import { endSession } from "@/lib/api";
+import { loadHostToken } from "@/lib/storage";
 import ConfirmModal from "@/components/modals/ConfirmModal";
 import ShareModal from "@/components/modals/ShareModal";
+import { Button } from "@/components/ui/button";
 import { copyInviteLink } from "@/utils/copyInviteLink";
 
-const pressable =
-  "transition-all hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none";
+const large = "h-auto px-4 py-2 text-2xl font-heading";
 
 export default function Header({
   onHome,
@@ -25,40 +25,40 @@ export default function Header({
 
   return (
     <header className="flex items-start justify-between">
-      <button
-        type="button"
-        className={`flex items-center gap-2 rounded-base border-2 border-border bg-secondary-background px-4 py-2 shadow-shadow ${onHome ? pressable : "cursor-default"}`}
-        onClick={() => onHome && setConfirming(true)}
+      <Button
+        variant="neutral"
+        disabled={!onHome}
+        className={`${large} disabled:opacity-100 data-disabled:opacity-100`}
+        onClick={() => setConfirming(true)}
       >
         <img src="/favicon-main.ico" alt="" className="size-8" />
-        <span className="text-2xl font-heading">Meetly</span>
-      </button>
+        Meetly
+      </Button>
       {code && (
         <div className="flex gap-2">
-          <button
-            type="button"
+          <Button
+            variant="neutral"
             aria-label="Show invitation QR code"
-            className={`${pressable} rounded-base border-2 border-border bg-secondary-background px-2 py-2 shadow-shadow [&_svg]:size-8`}
+            className="h-auto p-2 [&_svg]:size-8"
             onClick={() => setSharing(true)}
           >
             <QrCode />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="neutral"
             aria-label="Copy invitation link"
-            className={`${pressable} cursor-copy rounded-base border-2 border-border bg-secondary-background px-4 py-2 text-2xl font-heading shadow-shadow`}
+            className={`${large} cursor-copy`}
             onClick={() => copyInviteLink(code, setCopied)}
           >
             {copied ? "Copied!" : code}
-          </button>
+          </Button>
           {onHome && (
-            <button
-              type="button"
-              className={`${pressable} rounded-base border-2 border-border bg-main px-4 py-2 text-2xl font-heading text-main-foreground shadow-shadow`}
+            <Button
+              className={large}
               onClick={() => (host ? setEnding(true) : setConfirming(true))}
             >
               {host ? "End session" : "Leave"}
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -80,10 +80,7 @@ export default function Header({
           description="The session will end for everyone and all cards will be removed."
           confirmLabel="End session"
           onConfirm={async () => {
-            await fetch(`${API_URL}/sessions/${code}`, {
-              method: "DELETE",
-              headers: { "X-Host-Token": loadHostToken(code) ?? "" },
-            }).catch(() => {});
+            await endSession(code, loadHostToken(code) ?? "");
             onHome();
           }}
         />

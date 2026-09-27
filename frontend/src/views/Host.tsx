@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { API_URL } from "@/api";
-import { saveHostToken } from "@/storage";
+import { createSession } from "@/lib/api";
+import { saveHostToken } from "@/lib/storage";
 import Container from "@/components/Container";
 import QRCode from "@/components/QRCode";
 import Profile from "@/components/Profile";
@@ -13,16 +13,13 @@ export default function Host({
   onCode: (code: string) => void;
   onDone: (code: string, name: string) => void;
 }) {
-  const URL = import.meta.env.VITE_URL;
   const [showQR, setShowQR] = useState(true);
   const [code, setCode] = useState("");
 
   useEffect(() => {
     let ignore = false;
     Promise.all([
-      fetch(`${API_URL}/sessions`, { method: "POST" }).then((res) =>
-        res.json(),
-      ),
+      createSession(),
       new Promise((resolve) => setTimeout(resolve, 600)),
     ]).then(([data]) => {
       if (ignore) return;
@@ -38,7 +35,7 @@ export default function Host({
     <Container>
       {showQR ? (
         <div className="flex flex-col w-full gap-6">
-          <QRCode url={URL} code={code} />
+          <QRCode code={code} />
           <Button
             size="lg"
             className="h-12 w-full text-2xl font-heading disabled:opacity-100 data-disabled:opacity-100"

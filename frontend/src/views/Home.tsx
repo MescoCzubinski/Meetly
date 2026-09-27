@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Send } from "lucide-react";
 import { toast } from "@/components/ui/toast";
-import { API_URL } from "@/api";
-import type { Session } from "@/storage";
+import { isValidCode, sessionExists } from "@/lib/api";
+import type { Session } from "@/lib/storage";
 import Container from "@/components/Container";
 import InputWithButton from "@/components/InputWithButton";
 import { Button } from "@/components/ui/button";
@@ -24,13 +24,7 @@ export default function Home({
 
   useEffect(() => {
     let ignore = false;
-    Promise.all(
-      sessions.map((session) =>
-        fetch(`${API_URL}/sessions/${session.code}`)
-          .then((res) => res.ok)
-          .catch(() => false),
-      ),
-    ).then((exists) => {
+    Promise.all(sessions.map((s) => sessionExists(s.code))).then((exists) => {
       if (!ignore) setActive(sessions.filter((_, i) => exists[i]));
     });
     return () => {
@@ -60,17 +54,13 @@ export default function Home({
               value={code}
               onChange={(e) => setCode(e.target.value)}
               onSubmit={async (code) => {
-                if (!/^\d{6}$/.test(code)) {
+                if (!isValidCode(code)) {
                   toast.add({
                     type: "error",
                     title: "Invalid code",
                     description: "The session code is 6 digits, e.g. 123456",
                   });
-                } else if (
-                  await fetch(`${API_URL}/sessions/${code}`)
-                    .then((res) => res.ok)
-                    .catch(() => false)
-                ) {
+                } else if (await sessionExists(code)) {
                   onJoin(code);
                 } else {
                   toast.add({

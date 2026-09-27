@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
-import { WS_URL } from "@/api";
+import { WS_URL } from "@/lib/api";
 
 export type Answer = { name: string; interests: string[]; active: boolean };
 export type Link = [string, string, number];
 
-// Passing `name` marks that user as present in the session while connected.
 export const useWebSocket = (code: string, name?: string) => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [session, setSession] = useState<{ answers: Answer[]; links: Link[] }>(
-    { answers: [], links: [] },
-  );
-  const [isConnected, setIsConnected] = useState(false);
+  const [session, setSession] = useState<{ answers: Answer[]; links: Link[] }>({
+    answers: [],
+    links: [],
+  });
   const [ended, setEnded] = useState(false);
 
   useEffect(() => {
@@ -20,7 +19,6 @@ export const useWebSocket = (code: string, name?: string) => {
     const ws = new WebSocket(`${WS_URL}/session?${params}`);
 
     ws.onopen = () => {
-      setIsConnected(true);
       setSocket(ws);
     };
 
@@ -30,9 +28,7 @@ export const useWebSocket = (code: string, name?: string) => {
     };
 
     ws.onclose = (event) => {
-      // 4410: ended by host/expired/empty, 4404: session no longer exists
       if (event.code === 4410 || event.code === 4404) setEnded(true);
-      setIsConnected(false);
       setSocket(null);
     };
 
@@ -40,7 +36,7 @@ export const useWebSocket = (code: string, name?: string) => {
   }, [code, name]);
 
   const sendMessage = (name: string, interests: string[]) => {
-    if (socket && isConnected) {
+    if (socket) {
       socket.send(
         JSON.stringify({ event: "answer", data: { name, interests } }),
       );
