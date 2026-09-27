@@ -3,6 +3,7 @@ import { Injectable } from "@nestjs/common";
 import type { AnswerDto } from "../handlers/answer.dto";
 import { EmbeddingService } from "./embedding.service";
 import { SessionNotFoundException } from "../exceptions/not-found";
+import { InvalidSessionCodeException } from "../exceptions/invalid-code";
 
 interface Session {
   answers: AnswerDto[];
@@ -12,6 +13,8 @@ interface Session {
 const SESSION_TTL = 60 * 60 * 1000; // 1 hour
 const CLEANUP_INTERVAL = 60 * 1000; // 1 minute
 const SIMILARITY_THRESHOLD = 0.6;
+
+const CODE_PATTERN = /^\d{6}$/;
 
 @Injectable()
 export class SessionService {
@@ -35,11 +38,16 @@ export class SessionService {
     return code;
   }
 
+  isValidCode(code: string): boolean {
+    return CODE_PATTERN.test(code);
+  }
+
   exists(code: string): boolean {
     return this.get(code) !== undefined;
   }
 
-  assertExists(code: string): void {
+  assertValidSession(code: string): void {
+    if (!this.isValidCode(code)) throw new InvalidSessionCodeException();
     if (!this.exists(code)) throw new SessionNotFoundException(code);
   }
 

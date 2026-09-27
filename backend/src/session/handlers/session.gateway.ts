@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { UsePipes, ValidationPipe } from "@nestjs/common";
+import { HttpException, UsePipes, ValidationPipe } from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
@@ -29,8 +29,11 @@ export class SessionGateway
 
   handleConnection(client: WebSocket, request: IncomingMessage) {
     const code = new URLSearchParams(request.url?.split("?")[1]).get("code") ?? "";
-    if (!this.sessionService.exists(code)) {
-      client.close(4404, "Session not found");
+    try {
+      this.sessionService.assertValidSession(code);
+    } catch (error) {
+      if (!(error instanceof HttpException)) throw error;
+      client.close(4000 + error.getStatus(), error.message);
       return;
     }
 

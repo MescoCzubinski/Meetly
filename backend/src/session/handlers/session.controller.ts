@@ -12,7 +12,7 @@ export class SessionController {
 
   @Get(":code")
   get(@Param("code") code: string) {
-    this.sessionService.assertExists(code);
+    this.sessionService.assertValidSession(code);
     return { code };
   }
 }
