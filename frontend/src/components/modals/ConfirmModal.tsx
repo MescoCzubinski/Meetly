@@ -5,16 +5,22 @@ export default function ConfirmModal({
   open,
   onOpenChange,
   onConfirm,
+  title = "Leave?",
+  description = "You will go back to the main page.",
+  confirmLabel = "Leave",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  title?: string;
+  description?: string;
+  confirmLabel?: string;
 }) {
   return (
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Leave?"
+      title={title}
       footer={
         <>
           <Button
@@ -31,12 +37,12 @@ export default function ConfirmModal({
               onConfirm();
             }}
           >
-            Leave
+            {confirmLabel}
           </Button>
         </>
       }
     >
-      <p>You will go back to the main page.</p>
+      <p>{description}</p>
     </Modal>
   );
 }

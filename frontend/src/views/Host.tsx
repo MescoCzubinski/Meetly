@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { API_URL } from "@/api";
+import { saveHostToken } from "@/storage";
 import Container from "@/components/Container";
 import QRCode from "@/components/QRCode";
 import Profile from "@/components/Profile";
@@ -24,7 +25,9 @@ export default function Host({
       ),
       new Promise((resolve) => setTimeout(resolve, 600)),
     ]).then(([data]) => {
-      if (!ignore) setCode(data.code);
+      if (ignore) return;
+      saveHostToken(data.code, data.hostToken);
+      setCode(data.code);
     });
     return () => {
       ignore = true;

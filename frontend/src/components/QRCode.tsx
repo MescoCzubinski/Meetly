@@ -26,7 +26,7 @@ export default function QRCode({ url, code }: { url: string; code: string }) {
     <div className="flex w-full flex-col gap-4">
       <Button
         aria-label="Copy invitation link"
-        className="h-14 w-full text-2xl font-heading disabled:opacity-100 data-disabled:opacity-100"
+        className="h-14 w-full cursor-copy text-2xl font-heading disabled:opacity-100 data-disabled:opacity-100"
         disabled={!code}
         onClick={() => copyInviteLink(code, setCopied)}
       >

@@ -2,18 +2,22 @@ import { X } from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import InterestInput from "@/components/InterestInput";
 import LinkedGraph from "@/components/LinkedGraph";
+import Modal from "@/components/modals/Modal";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
 export default function Answers({
   code,
   name,
+  onHome,
 }: {
   code: string;
   name: string;
+  onHome: () => void;
 }) {
-  const { answers, links, sendMessage } = useWebSocket(code);
+  const { answers, links, ended, sendMessage } = useWebSocket(code, name);
   const own = answers.find((res) => res.name === name);
   const interests = own?.interests ?? [];
 
@@ -49,6 +53,18 @@ export default function Answers({
           />
         </CardContent>
       </Card>
+      <Modal
+        open={ended}
+        onOpenChange={(open) => !open && onHome()}
+        title="Session ended"
+        footer={
+          <Button size="lg" className="w-full text-lg" onClick={onHome}>
+            Go to main page
+          </Button>
+        }
+      >
+        <p>This session is over. Thanks for joining!</p>
+      </Modal>
     </div>
   );
 }

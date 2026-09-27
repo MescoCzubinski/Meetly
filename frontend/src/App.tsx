@@ -95,7 +95,11 @@ export default function App() {
       break;
     case "answers":
       view = (
-        <Answers code={state.code} name={state.name} />
+        <Answers
+          code={state.code}
+          name={state.name}
+          onHome={() => setState({ view: "home" })}
+        />
       );
       break;
   }
@@ -104,7 +108,13 @@ export default function App() {
     <>
       <Background />
       <div className="flex min-h-dvh flex-col gap-4 p-4">
-        <Header onHome={goHome} code={headerCode} />
+        <Header
+          onHome={goHome}
+          code={headerCode}
+          host={
+            state.view === "host" || (state.view === "answers" && !state.guest)
+          }
+        />
         {view}
       </div>
       <Button

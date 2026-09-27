@@ -99,7 +99,7 @@ export default function LinkedGraph({
         >
           <Card
             size="sm"
-            className={`animate-in fade-in zoom-in-90 duration-300 ${res.name === own ? "bg-main" : ""}`}
+            className={`animate-in fade-in zoom-in-90 duration-300 ${res.name === own ? "bg-main" : res.active ? "" : "bg-secondary-background"}`}
           >
             <CardHeader>
               <CardTitle className="text-lg">{res.name}</CardTitle>
