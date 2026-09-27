@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { WS_URL } from "@/lib/api";
+import { WS_URL } from "@/lib/config";
 
 export type Answer = { name: string; interests: string[]; active: boolean };
 export type Link = [string, string, number];

@@ -95,7 +95,7 @@ export default function LinkedGraph({
           onPointerMove={moveDragged}
           onPointerUp={() => (drag.current = null)}
           onPointerCancel={() => (drag.current = null)}
-          className="absolute top-0 left-0 w-max max-w-48 cursor-grab touch-none select-none active:z-10 active:cursor-grabbing"
+          className="absolute top-0 left-0 w-max max-w-58 cursor-grab touch-none select-none active:z-10 active:cursor-grabbing"
         >
           <Card
             size="sm"

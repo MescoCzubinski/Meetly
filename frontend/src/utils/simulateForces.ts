@@ -3,14 +3,13 @@ import type { Link } from "@/hooks/useWebSocket";
 export type Body = { x: number; y: number; vx: number; vy: number };
 export type Node = { body: Body; width: number; height: number };
 
-const REPULSION = 30000;
-const COLLISION = 0.1;
-const SPRING = 0.01;
-const MAX_STRENGTH = 3;
-const GRAVITY = 0.005;
-const DAMPING = 0.85;
-const JITTER = 0.1;
-const GAP = 24;
+const REPULSION = 100000; // push between all cards, ~1/(dist^2)
+const COLLISION = 0.1; // extra push when cards overlap
+const SPRING = 0.03; // link pull towards rest length
+const MAX_STRENGTH = 3; // link strength cap
+const GRAVITY = 0.002; // pull towards center
+const DAMPING = 0.85; // velocity kept per frame
+const GAP = 24; // min space between cards, px
 
 const radius = (node: Node) => (node.width + node.height) / 4;
 
@@ -50,7 +49,7 @@ export function simulateForces(
     const f =
       SPRING *
       Math.min(strength, MAX_STRENGTH) *
-      (dist - (radius(a) + radius(b) + GAP * 2));
+      (dist - (radius(a) + radius(b) + GAP));
     a.body.vx += (dx / dist) * f;
     a.body.vy += (dy / dist) * f;
     b.body.vx -= (dx / dist) * f;
@@ -60,8 +59,8 @@ export function simulateForces(
   for (const [name, node] of nodes) {
     const { body } = node;
     if (pinned === name) body.vx = body.vy = 0;
-    body.vx += (width / 2 - body.x) * GRAVITY + (Math.random() - 0.5) * JITTER;
-    body.vy += (height / 2 - body.y) * GRAVITY + (Math.random() - 0.5) * JITTER;
+    body.vx += (width / 2 - body.x) * GRAVITY;
+    body.vy += (height / 2 - body.y) * GRAVITY;
     body.vx *= DAMPING;
     body.vy *= DAMPING;
     body.x = Math.min(

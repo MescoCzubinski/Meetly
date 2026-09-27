@@ -1,4 +1,5 @@
 import Modal from "@/components/modals/Modal";
+import { MODEL_URL } from "@/lib/config";
 
 const link = "underline underline-offset-2";
 
@@ -17,7 +18,7 @@ export default function AboutModal({
           Interests are matched by meaning, not spelling, using the{" "}
           <a
             className={link}
-            href="https://huggingface.co/Xenova/paraphrase-multilingual-MiniLM-L12-v2"
+            href={MODEL_URL}
             target="_blank"
             rel="noreferrer"
           >
