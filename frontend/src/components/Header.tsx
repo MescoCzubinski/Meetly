@@ -6,12 +6,10 @@ import ConfirmModal from "./modals/ConfirmModal";
 import InterestModal, { InterestList } from "./modals/InterestModal";
 
 export default function Header({
-  favicon,
   onHome,
   interests,
   onRemove,
 }: {
-  favicon: string;
   onHome?: () => void;
   interests?: string[];
   onRemove?: (index: number) => void;
@@ -26,7 +24,7 @@ export default function Header({
         className={`flex items-center gap-2 rounded-base border-2 border-border bg-secondary-background px-4 py-2 shadow-shadow ${onHome ? "cursor-pointer" : "cursor-default"}`}
         onClick={() => onHome && setConfirming(true)}
       >
-        <img src={favicon} alt="" className="size-8" />
+        <img src="/favicon-main.ico" alt="" className="size-8" />
         <span className="text-2xl font-heading">Meetly</span>
       </button>
       {interests && onRemove && (

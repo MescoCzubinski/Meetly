@@ -8,12 +8,10 @@ import { Label } from "@/components/ui/label";
 export default function Answers({
   code,
   name,
-  favicon,
   onHome,
 }: {
   code: string;
   name: string;
-  favicon: string;
   onHome?: () => void;
 }) {
   const { answers, links, sendMessage } = useWebSocket(code);
@@ -23,7 +21,6 @@ export default function Answers({
   return (
     <div className="flex h-dvh w-full flex-col gap-4 p-4">
       <Header
-        favicon={favicon}
         onHome={onHome}
         interests={interests}
         onRemove={(index) =>
