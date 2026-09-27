@@ -31,7 +31,7 @@ export default function Header({
         className={`${large} disabled:opacity-100 data-disabled:opacity-100`}
         onClick={() => setConfirming(true)}
       >
-        <img src="/favicon-main.ico" alt="" className="size-8" />
+        <img src="/icon.png" alt="" className="size-8" />
         Meetly
       </Button>
       {code && (
