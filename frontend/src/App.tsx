@@ -111,6 +111,7 @@ export default function App() {
       <div className="flex min-h-dvh flex-col gap-4 p-4">
         <Header
           onHome={goHome}
+          onAbout={() => setShowingAbout(true)}
           code={headerCode}
           host={
             state.view === "host" || (state.view === "answers" && !state.guest)
@@ -121,7 +122,7 @@ export default function App() {
       <Button
         variant="neutral"
         aria-label="About Meetly"
-        className="fixed right-4 bottom-4 z-10 size-13 [&_svg]:size-6"
+        className="fixed right-4 bottom-4 z-10 hidden size-13 md:inline-flex [&_svg]:size-6"
         onClick={() => setShowingAbout(true)}
       >
         <Info />

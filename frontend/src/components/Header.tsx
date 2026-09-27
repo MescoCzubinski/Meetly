@@ -1,20 +1,31 @@
 import { useState } from "react";
-import { QrCode } from "lucide-react";
+import { Info, LogOut, Menu, QrCode } from "lucide-react";
 import { endSession } from "@/lib/api";
 import { loadHostToken } from "@/lib/storage";
 import ConfirmModal from "@/components/modals/ConfirmModal";
 import ShareModal from "@/components/modals/ShareModal";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { GITHUB_URL } from "@/lib/config";
 import { copyInviteLink } from "@/utils/copyInviteLink";
+import github from "@/assets/github.svg";
 
 const large = "h-auto px-4 py-2 text-2xl font-heading";
+const icon = "h-auto p-2 [&_svg]:size-8";
 
 export default function Header({
   onHome,
+  onAbout,
   code,
   host,
 }: {
   onHome?: () => void;
+  onAbout: () => void;
   code?: string;
   host?: boolean;
 }) {
@@ -34,34 +45,89 @@ export default function Header({
         <img src="/icon.png" alt="" className="size-8" />
         Meetly
       </Button>
-      {code && (
-        <div className="flex gap-2">
-          <Button
-            variant="neutral"
-            aria-label="Show invitation QR code"
-            className="h-auto p-2 [&_svg]:size-8"
-            onClick={() => setSharing(true)}
-          >
-            <QrCode />
-          </Button>
-          <Button
-            variant="neutral"
-            aria-label="Copy invitation link"
-            className={`${large} cursor-copy`}
-            onClick={() => copyInviteLink(code, setCopied)}
-          >
-            {copied ? "Copied!" : code}
-          </Button>
-          {onHome && (
+      <div className="flex gap-2">
+        {code && (
+          <>
             <Button
-              className={large}
-              onClick={() => (host ? setEnding(true) : setConfirming(true))}
+              variant="neutral"
+              aria-label="Show invitation QR code"
+              className={`${icon} hidden md:inline-flex`}
+              onClick={() => setSharing(true)}
             >
-              {host ? "End session" : "Leave"}
+              <QrCode />
             </Button>
-          )}
-        </div>
-      )}
+            <Button
+              variant="neutral"
+              aria-label="Copy invitation link"
+              className={`${large} cursor-copy`}
+              onClick={() => copyInviteLink(code, setCopied)}
+            >
+              {copied ? "Copied!" : code}
+            </Button>
+            {onHome && (
+              <Button
+                className={`${large} hidden md:inline-flex`}
+                onClick={() => (host ? setEnding(true) : setConfirming(true))}
+              >
+                {host ? "End session" : "Leave"}
+              </Button>
+            )}
+          </>
+        )}
+        <Button
+          variant="neutral"
+          aria-label="Meetly on GitHub"
+          className={`${icon} hidden md:inline-flex`}
+          nativeButton={false}
+          render={<a href={GITHUB_URL} target="_blank" rel="noreferrer" />}
+        >
+          <img src={github} alt="" className="size-8" />
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="neutral"
+                aria-label="Open menu"
+                className={`${icon} md:hidden`}
+              />
+            }
+          >
+            <Menu />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {code && (
+              <DropdownMenuItem
+                className="text-lg"
+                onClick={() => setSharing(true)}
+              >
+                <QrCode />
+                Invite QR code
+              </DropdownMenuItem>
+            )}
+            {code && onHome && (
+              <DropdownMenuItem
+                className="text-lg"
+                onClick={() => (host ? setEnding(true) : setConfirming(true))}
+              >
+                {<LogOut />}
+                {host ? "End session" : "Leave"}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem className="text-lg" onClick={onAbout}>
+              <Info />
+              About
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-lg"
+              render={<a href={GITHUB_URL} target="_blank" rel="noreferrer" />}
+            >
+              <img src={github} alt="" className="size-4" />
+              GitHub
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       {code && (
         <ShareModal open={sharing} onOpenChange={setSharing} code={code} />
       )}
