@@ -46,10 +46,6 @@
 @layer base {
   body {
     background-color: var(--background);
-    background-image:
-      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-    background-size: 40px 40px;
     font-weight: var(--font-weight-base);
     color: var(--foreground);
   }

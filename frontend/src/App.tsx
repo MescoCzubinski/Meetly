@@ -4,6 +4,7 @@ import Home from "@/views/Home";
 import Guest from "@/views/Guest";
 import Host from "@/views/Host";
 import Answers from "@/views/Answers";
+import Background from "@/components/Background";
 import Header from "@/components/Header";
 import AboutModal from "@/components/modals/AboutModal";
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,7 @@ export default function App() {
 
   return (
     <>
+      <Background />
       <div className="flex min-h-dvh flex-col gap-4 p-4">
         <Header onHome={goHome} code={headerCode} />
         {view}
