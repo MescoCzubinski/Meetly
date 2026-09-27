@@ -25,13 +25,9 @@ export default function Name({
           id="name"
           autoFocus
           placeholder="Enter your name"
-          maxLength={20}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onSubmit={() => {
-            const value = name.trim();
-            if (value) onSubmit(value);
-          }}
+          onSubmit={onSubmit}
           button={<Send />}
           buttonLabel="Next"
         />

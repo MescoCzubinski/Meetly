@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Send } from "lucide-react";
+import { toast } from "@/components/ui/toast";
 import { API_URL } from "@/api";
 import type { Session } from "@/storage";
 import Container from "@/components/Container";
@@ -19,8 +20,6 @@ export default function Home({
   onResume: (session: Session) => void;
 }) {
   const [code, setCode] = useState<string>("");
-  const [showError, setShowError] = useState(false);
-  const [error, setError] = useState("");
   const [active, setActive] = useState<Session[]>([]);
 
   useEffect(() => {
@@ -38,12 +37,6 @@ export default function Home({
       ignore = true;
     };
   }, [sessions]);
-
-  useEffect(() => {
-    if (!showError) return;
-    const timer = setTimeout(() => setShowError(false), 1300);
-    return () => clearTimeout(timer);
-  }, [showError]);
 
   return (
     <Container>
@@ -66,29 +59,30 @@ export default function Home({
               placeholder="Or enter the code here"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              onSubmit={async () => {
-                const fail = (message: string) => {
-                  setError(message);
-                  setShowError(true);
-                };
-                if (!/^\d{6}$/.test(code)) return fail("code is 6 digits long");
-                const exists = await fetch(`${API_URL}/sessions/${code}`)
-                  .then((res) => res.ok)
-                  .catch(() => false);
-                if (exists) onJoin(code);
-                else fail("session not found");
+              onSubmit={async (code) => {
+                if (!/^\d{6}$/.test(code)) {
+                  toast.add({
+                    type: "error",
+                    title: "Invalid code",
+                    description: "The session code is 6 digits, e.g. 123456",
+                  });
+                } else if (
+                  await fetch(`${API_URL}/sessions/${code}`)
+                    .then((res) => res.ok)
+                    .catch(() => false)
+                ) {
+                  onJoin(code);
+                } else {
+                  toast.add({
+                    type: "error",
+                    title: "Session not found",
+                    description: `No session with code ${code}. It may have ended, so check the code or ask the host`,
+                  });
+                }
               }}
               button={<Send />}
               buttonLabel="Join"
             />
-            <div
-              aria-hidden={!showError}
-              className={`-mt-4 grid transition-[grid-template-rows] duration-300 ${showError ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
-            >
-              <div className="overflow-hidden">
-                <p className="pt-4 w-full text-center">{error}</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
         {active.length > 0 && (
