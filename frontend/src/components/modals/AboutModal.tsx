@@ -1,4 +1,4 @@
-import Modal from "./Modal";
+import Modal from "@/components/modals/Modal";
 
 const link = "underline underline-offset-2";
 

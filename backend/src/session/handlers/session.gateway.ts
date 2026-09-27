@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { UsePipes, ValidationPipe } from "@nestjs/common";
+import { HttpException, UsePipes, ValidationPipe } from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
@@ -17,29 +17,53 @@ import { SessionService } from "../services/session.service";
 export class SessionGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  private readonly clients = new Map<WebSocket, string>();
+  private readonly clients = new Map<
+    WebSocket,
+    { code: string; name?: string }
+  >();
 
   constructor(private readonly sessionService: SessionService) {
-    sessionService.onExpired((code) => {
-      for (const [client, clientCode] of this.clients) {
-        if (clientCode === code) client.close(4410, "Session expired");
+    sessionService.onEnded((code) => {
+      for (const [client, info] of this.clients) {
+        if (info.code === code) client.close(4410, "Session ended");
       }
     });
   }
 
   handleConnection(client: WebSocket, request: IncomingMessage) {
-    const code = new URLSearchParams(request.url?.split("?")[1]).get("code") ?? "";
-    if (!this.sessionService.exists(code)) {
-      client.close(4404, "Session not found");
+    const params = new URLSearchParams(request.url?.split("?")[1]);
+    const code = params.get("code") ?? "";
+    const name = params.get("name") || undefined;
+    try {
+      this.sessionService.assertValidSession(code);
+    } catch (error) {
+      if (!(error instanceof HttpException)) throw error;
+      client.close(4000 + error.getStatus(), error.message);
       return;
     }
 
-    this.clients.set(client, code);
-    client.send(this.sessionMessage(code));
+    this.clients.set(client, { code, name });
+    this.sessionService.cancelEmptyEnd(code);
+    if (name && this.sessionService.join(code, name)) this.broadcast(code);
+    else client.send(this.sessionMessage(code));
   }
 
   handleDisconnect(client: WebSocket) {
+    const info = this.clients.get(client);
     this.clients.delete(client);
+    if (!info) return;
+    const { code, name } = info;
+
+    const others = [...this.clients.values()].filter(
+      (other) => other.code === code,
+    );
+    if (others.length === 0) this.sessionService.scheduleEmptyEnd(code);
+    if (!name || others.some((other) => other.name === name)) return;
+
+    const left = this.sessionService.leave(code, name, () =>
+      this.broadcast(code),
+    );
+    if (left) this.broadcast(code);
   }
 
   @SubscribeMessage("answer")
@@ -53,14 +77,18 @@ export class SessionGateway
     @ConnectedSocket() client: WebSocket,
     @MessageBody() answer: AnswerDto,
   ) {
-    const code = this.clients.get(client);
-    if (!code || !this.sessionService.exists(code)) return;
+    const info = this.clients.get(client);
+    if (!info || !this.sessionService.exists(info.code)) return;
 
-    await this.sessionService.addAnswer(code, answer);
+    await this.sessionService.addAnswer(info.code, answer);
 
+    this.broadcast(info.code);
+  }
+
+  private broadcast(code: string) {
     const message = this.sessionMessage(code);
-    for (const [other, otherCode] of this.clients) {
-      if (otherCode === code) other.send(message);
+    for (const [client, info] of this.clients) {
+      if (info.code === code) client.send(message);
     }
   }
 

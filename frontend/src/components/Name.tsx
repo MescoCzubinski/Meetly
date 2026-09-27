@@ -1,5 +1,6 @@
 import { useState } from "react";
-import InputWithButton from "./InputWithButton";
+import { Send } from "lucide-react";
+import InputWithButton from "@/components/InputWithButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
@@ -24,14 +25,11 @@ export default function Name({
           id="name"
           autoFocus
           placeholder="Enter your name"
-          maxLength={20}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onSubmit={() => {
-            const value = name.trim();
-            if (value) onSubmit(value);
-          }}
-          button="Next"
+          onSubmit={onSubmit}
+          button={<Send />}
+          buttonLabel="Next"
         />
       </CardContent>
     </Card>

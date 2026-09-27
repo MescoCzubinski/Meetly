@@ -1,4 +1,4 @@
-import type { Link } from "../hooks/useWebSocket";
+import type { Link } from "@/hooks/useWebSocket";
 
 export type Body = { x: number; y: number; vx: number; vy: number };
 export type Node = { body: Body; width: number; height: number };

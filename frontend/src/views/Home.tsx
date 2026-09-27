@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { ArrowRight } from "lucide-react";
-import { API_URL } from "../api";
-import type { Session } from "../storage";
-import Container from "../components/Container";
-import InputWithButton from "../components/InputWithButton";
+import { Send } from "lucide-react";
+import { toast } from "@/components/ui/toast";
+import { isValidCode, sessionExists } from "@/lib/api";
+import type { Session } from "@/lib/storage";
+import Container from "@/components/Container";
+import InputWithButton from "@/components/InputWithButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -19,30 +20,17 @@ export default function Home({
   onResume: (session: Session) => void;
 }) {
   const [code, setCode] = useState<string>("");
-  const [showError, setShowError] = useState(false);
   const [active, setActive] = useState<Session[]>([]);
 
   useEffect(() => {
     let ignore = false;
-    Promise.all(
-      sessions.map((session) =>
-        fetch(`${API_URL}/sessions/${session.code}`)
-          .then((res) => res.ok)
-          .catch(() => false),
-      ),
-    ).then((exists) => {
+    Promise.all(sessions.map((s) => sessionExists(s.code))).then((exists) => {
       if (!ignore) setActive(sessions.filter((_, i) => exists[i]));
     });
     return () => {
       ignore = true;
     };
   }, [sessions]);
-
-  useEffect(() => {
-    if (!showError) return;
-    const timer = setTimeout(() => setShowError(false), 1300);
-    return () => clearTimeout(timer);
-  }, [showError]);
 
   return (
     <Container>
@@ -65,26 +53,26 @@ export default function Home({
               placeholder="Or enter the code here"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              onSubmit={() => {
-                if (code.length === 6) {
+              onSubmit={async (code) => {
+                if (!isValidCode(code)) {
+                  toast.add({
+                    type: "error",
+                    title: "Invalid code",
+                    description: "The session code is 6 digits, e.g. 123456",
+                  });
+                } else if (await sessionExists(code)) {
                   onJoin(code);
                 } else {
-                  setShowError(true);
+                  toast.add({
+                    type: "error",
+                    title: "Session not found",
+                    description: `No session with code ${code}. It may have ended, so check the code or ask the host`,
+                  });
                 }
               }}
-              button={<ArrowRight />}
+              button={<Send />}
               buttonLabel="Join"
             />
-            <div
-              aria-hidden={!showError}
-              className={`-mt-4 grid transition-[grid-template-rows] duration-300 ${showError ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
-            >
-              <div className="overflow-hidden">
-                <p className="pt-4 w-full text-center">
-                  code is 6 characters long
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
         {active.length > 0 && (

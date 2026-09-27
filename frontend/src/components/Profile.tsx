@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { X } from "lucide-react";
-import { useWebSocket } from "../hooks/useWebSocket";
-import Name from "./Name";
-import InterestInput from "./InterestInput";
+import { toast } from "@/components/ui/toast";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import Name from "@/components/Name";
+import InterestInput from "@/components/InterestInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,15 +33,7 @@ export default function Profile({
 }) {
   const [name, setName] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
-  const [duplicate, setDuplicate] = useState("");
-  const [showError, setShowError] = useState(false);
   const { sendMessage } = useWebSocket(code);
-
-  useEffect(() => {
-    if (!showError) return;
-    const timer = setTimeout(() => setShowError(false), 1300);
-    return () => clearTimeout(timer);
-  }, [showError]);
 
   const [badgesHeight, setBadgesHeight] = useState<number>();
   const measureBadges = useCallback((el: HTMLDivElement | null) => {
@@ -68,24 +61,16 @@ export default function Profile({
             const lower = interest.toLowerCase();
             const existing = interests.find((i) => i.toLowerCase() === lower);
             if (existing) {
-              setDuplicate(existing);
-              setShowError(true);
+              toast.add({
+                type: "error",
+                title: "Already added",
+                description: `"${existing}" is already on your list`,
+              });
               return;
             }
-            setShowError(false);
             setInterests([...interests, interest]);
           }}
         />
-        <div
-          aria-hidden={!showError}
-          className={`-mt-4 grid transition-[grid-template-rows] duration-300 ${showError ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
-        >
-          <div className="overflow-hidden">
-            <p className="pt-4 w-full text-center">
-              "{duplicate}" is already added
-            </p>
-          </div>
-        </div>
         <div
           style={{ height: badgesHeight }}
           className="overflow-hidden transition-[height] duration-300"

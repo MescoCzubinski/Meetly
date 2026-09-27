@@ -1,13 +1,15 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Info } from "lucide-react";
-import Home from "./views/Home.tsx";
-import Guest from "./views/Guest.tsx";
-import Host from "./views/Host.tsx";
-import Answers from "./views/Answers.tsx";
-import Header from "./components/Header.tsx";
-import AboutModal from "./components/modals/AboutModal.tsx";
+import { isValidCode } from "@/lib/api";
+import Home from "@/views/Home";
+import Guest from "@/views/Guest";
+import Host from "@/views/Host";
+import Answers from "@/views/Answers";
+import Background from "@/components/Background";
+import Header from "@/components/Header";
+import AboutModal from "@/components/modals/AboutModal";
 import { Button } from "@/components/ui/button";
-import { loadSessions, saveSession, type Session } from "./storage.ts";
+import { loadSessions, saveSession, type Session } from "@/lib/storage";
 
 type State =
   | { view: "home" }
@@ -35,6 +37,7 @@ export default function App() {
 
   const [sessions, setSessions] = useState<Session[]>(loadSessions);
   const [showingAbout, setShowingAbout] = useState(false);
+  const [hostCode, setHostCode] = useState("");
 
   useEffect(() => window.history.replaceState(state, ""), [state]);
 
@@ -44,23 +47,26 @@ export default function App() {
     setSessions(saveSession({ code, name, guest }));
   }, [state]);
 
-  const isGuest =
-    state.view === "guest" || (state.view === "answers" && state.guest);
-  const favicon = isGuest ? "/favicon-card.ico" : "/favicon-main.ico";
-  useEffect(() => {
-    const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (icon) icon.href = favicon;
-  }, [favicon]);
-
   const goHome =
     state.view === "home" ? undefined : () => setState({ view: "home" });
+
+  const headerCode =
+    state.view === "host"
+      ? hostCode
+      : state.view === "answers" ||
+          (state.view === "guest" && isValidCode(state.code))
+        ? state.code
+        : undefined;
 
   let view: ReactNode;
   switch (state.view) {
     case "home":
       view = (
         <Home
-          onHost={() => setState({ view: "host" })}
+          onHost={() => {
+            setHostCode("");
+            setState({ view: "host" });
+          }}
           onJoin={(code) => setState({ view: "guest", code })}
           sessions={sessions}
           onResume={(session) => setState({ view: "answers", ...session })}
@@ -70,6 +76,7 @@ export default function App() {
     case "host":
       view = (
         <Host
+          onCode={setHostCode}
           onDone={(code, name) =>
             setState({ view: "answers", code, name, guest: false })
           }
@@ -92,8 +99,7 @@ export default function App() {
         <Answers
           code={state.code}
           name={state.name}
-          favicon={favicon}
-          onHome={goHome}
+          onHome={() => setState({ view: "home" })}
         />
       );
       break;
@@ -101,10 +107,17 @@ export default function App() {
 
   return (
     <>
-      {state.view !== "answers" && (
-        <Header favicon={favicon} onHome={goHome} />
-      )}
-      {view}
+      <Background />
+      <div className="flex min-h-dvh flex-col gap-4 p-4">
+        <Header
+          onHome={goHome}
+          code={headerCode}
+          host={
+            state.view === "host" || (state.view === "answers" && !state.guest)
+          }
+        />
+        {view}
+      </div>
       <Button
         variant="neutral"
         aria-label="About Meetly"

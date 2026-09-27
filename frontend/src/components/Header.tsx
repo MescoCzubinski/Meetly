@@ -1,68 +1,88 @@
 import { useState } from "react";
-import { List } from "lucide-react";
+import { QrCode } from "lucide-react";
+import { endSession } from "@/lib/api";
+import { loadHostToken } from "@/lib/storage";
+import ConfirmModal from "@/components/modals/ConfirmModal";
+import ShareModal from "@/components/modals/ShareModal";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ConfirmModal from "./modals/ConfirmModal";
-import InterestModal, { InterestList } from "./modals/InterestModal";
+import { copyInviteLink } from "@/utils/copyInviteLink";
+
+const large = "h-auto px-4 py-2 text-2xl font-heading";
 
 export default function Header({
-  favicon,
   onHome,
-  interests,
-  onRemove,
+  code,
+  host,
 }: {
-  favicon: string;
   onHome?: () => void;
-  interests?: string[];
-  onRemove?: (index: number) => void;
+  code?: string;
+  host?: boolean;
 }) {
   const [confirming, setConfirming] = useState(false);
-  const [showingInterests, setShowingInterests] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [ending, setEnding] = useState(false);
 
   return (
-    <header className="pointer-events-none fixed inset-x-4 top-4 z-10 flex items-start justify-between [&>*]:pointer-events-auto">
-      <button
-        type="button"
-        className={`flex items-center gap-2 rounded-base border-2 border-border bg-secondary-background px-4 py-2 shadow-shadow ${onHome ? "cursor-pointer" : "cursor-default"}`}
-        onClick={() => onHome && setConfirming(true)}
+    <header className="flex items-start justify-between">
+      <Button
+        variant="neutral"
+        disabled={!onHome}
+        className={`${large} disabled:opacity-100 data-disabled:opacity-100`}
+        onClick={() => setConfirming(true)}
       >
-        <img src={favicon} alt="" className="size-8" />
-        <span className="text-2xl font-heading">Meetly</span>
-      </button>
-      {interests && onRemove && (
-        <>
-          <Card
-            size="sm"
-            className="hidden max-h-[calc(100dvh-2rem)] w-72 overflow-y-auto md:flex"
-          >
-            <CardHeader>
-              <CardTitle className="text-xl">Your interests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <InterestList interests={interests} onRemove={onRemove} />
-            </CardContent>
-          </Card>
+        <img src="/icon.png" alt="" className="size-8" />
+        Meetly
+      </Button>
+      {code && (
+        <div className="flex gap-2">
           <Button
             variant="neutral"
-            aria-label="Your interests"
-            className="size-13 md:hidden [&_svg]:size-6"
-            onClick={() => setShowingInterests(true)}
+            aria-label="Show invitation QR code"
+            className="h-auto p-2 [&_svg]:size-8"
+            onClick={() => setSharing(true)}
           >
-            <List />
+            <QrCode />
           </Button>
-          <InterestModal
-            open={showingInterests}
-            onOpenChange={setShowingInterests}
-            interests={interests}
-            onRemove={onRemove}
-          />
-        </>
+          <Button
+            variant="neutral"
+            aria-label="Copy invitation link"
+            className={`${large} cursor-copy`}
+            onClick={() => copyInviteLink(code, setCopied)}
+          >
+            {copied ? "Copied!" : code}
+          </Button>
+          {onHome && (
+            <Button
+              className={large}
+              onClick={() => (host ? setEnding(true) : setConfirming(true))}
+            >
+              {host ? "End session" : "Leave"}
+            </Button>
+          )}
+        </div>
+      )}
+      {code && (
+        <ShareModal open={sharing} onOpenChange={setSharing} code={code} />
       )}
       {onHome && (
         <ConfirmModal
           open={confirming}
           onOpenChange={setConfirming}
           onConfirm={onHome}
+        />
+      )}
+      {onHome && code && host && (
+        <ConfirmModal
+          open={ending}
+          onOpenChange={setEnding}
+          title="End session?"
+          description="The session will end for everyone and all cards will be removed."
+          confirmLabel="End session"
+          onConfirm={async () => {
+            await endSession(code, loadHostToken(code) ?? "");
+            onHome();
+          }}
         />
       )}
     </header>

@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import type { Answer, Link } from "../hooks/useWebSocket";
+import type { Answer, Link } from "@/hooks/useWebSocket";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { simulateForces, type Body } from "../utils/simulateForces";
+import { simulateForces, type Body } from "@/utils/simulateForces";
 
 export default function LinkedGraph({
   answers,
@@ -99,7 +99,7 @@ export default function LinkedGraph({
         >
           <Card
             size="sm"
-            className={`animate-in fade-in zoom-in-90 duration-300 ${res.name === own ? "bg-main" : ""}`}
+            className={`animate-in fade-in zoom-in-90 duration-300 ${res.name === own ? "bg-main" : res.active ? "" : "bg-secondary-background"}`}
           >
             <CardHeader>
               <CardTitle className="text-lg">{res.name}</CardTitle>

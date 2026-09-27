@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import InputWithButton from "./InputWithButton";
+import InputWithButton from "@/components/InputWithButton";
 
 export default function InterestInput({
   onAdd,
@@ -16,15 +16,11 @@ export default function InterestInput({
       id="interests"
       autoFocus={autoFocus}
       placeholder="Type your interests"
-      maxLength={20}
       value={value}
       onChange={(e) => setValue(e.target.value)}
-      onSubmit={() => {
-        const interest = value.trim();
-        if (interest) {
-          onAdd(interest);
-          setValue("");
-        }
+      onSubmit={(interest) => {
+        onAdd(interest);
+        setValue("");
       }}
       button={<Plus />}
       buttonLabel="Add interest"

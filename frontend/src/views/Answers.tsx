@@ -1,38 +1,50 @@
-import { useWebSocket } from "../hooks/useWebSocket";
-import Header from "../components/Header";
-import InterestInput from "../components/InterestInput";
-import LinkedGraph from "../components/LinkedGraph";
+import { X } from "lucide-react";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import InterestInput from "@/components/InterestInput";
+import LinkedGraph from "@/components/LinkedGraph";
+import Modal from "@/components/modals/Modal";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
 export default function Answers({
   code,
   name,
-  favicon,
   onHome,
 }: {
   code: string;
   name: string;
-  favicon: string;
-  onHome?: () => void;
+  onHome: () => void;
 }) {
-  const { answers, links, sendMessage } = useWebSocket(code);
+  const { answers, links, ended, sendMessage } = useWebSocket(code, name);
   const own = answers.find((res) => res.name === name);
   const interests = own?.interests ?? [];
 
   return (
-    <div className="flex h-dvh w-full flex-col gap-4 p-4">
-      <Header
-        favicon={favicon}
-        onHome={onHome}
-        interests={interests}
-        onRemove={(index) =>
-          sendMessage(name, interests.filter((_, i) => i !== index))
-        }
-      />
+    <div className="flex w-full flex-1 flex-col gap-4">
       <LinkedGraph answers={answers} links={links} own={name} />
       <Card size="sm" className="mx-auto w-full max-w-sm">
-        <CardContent>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
+            {interests.map((interest, index) => (
+              <Badge key={index} variant="neutral" className="text-base">
+                {interest}
+                {interests.length > 1 && (
+                  <button
+                    type="button"
+                    className="cursor-pointer"
+                    aria-label={`Remove ${interest}`}
+                    onClick={() =>
+                      sendMessage(name, interests.filter((_, i) => i !== index))
+                    }
+                  >
+                    <X />
+                  </button>
+                )}
+              </Badge>
+            ))}
+          </div>
           <Label htmlFor="interests" className="sr-only">
             Add an interest
           </Label>
@@ -41,6 +53,18 @@ export default function Answers({
           />
         </CardContent>
       </Card>
+      <Modal
+        open={ended}
+        onOpenChange={(open) => !open && onHome()}
+        title="Session ended"
+        footer={
+          <Button size="lg" className="w-full text-lg" onClick={onHome}>
+            Go to main page
+          </Button>
+        }
+      >
+        <p>This session is over. Thanks for joining!</p>
+      </Modal>
     </div>
   );
 }
