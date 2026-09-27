@@ -1,4 +1,10 @@
-import { IsArray, IsString, Matches, MaxLength } from "class-validator";
+import {
+  ArrayMinSize,
+  IsArray,
+  IsString,
+  Matches,
+  MaxLength,
+} from "class-validator";
 
 export class AnswerDto {
   @IsString()
@@ -7,6 +13,7 @@ export class AnswerDto {
   name!: string;
 
   @IsArray()
+  @ArrayMinSize(1)
   @IsString({ each: true })
   @MaxLength(20, { each: true })
   interests!: string[];
