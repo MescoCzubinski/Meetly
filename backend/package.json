@@ -1,7 +1,7 @@
 {
   "scripts": {
     "dev": "bun --env-file ../.env --watch src/main.ts",
-    "build": "bun build.ts",
+    "warm": "bun warm.ts",
     "lint": "oxlint",
     "typecheck": "tsc --noEmit"
   },

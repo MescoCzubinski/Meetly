@@ -8,11 +8,9 @@ COPY . .
 EXPOSE 8080
 CMD ["bun", "run", "dev"]
 
-FROM base AS build
+FROM base AS prod
 COPY . .
-RUN bun run build
-
-FROM gcr.io/distroless/base-debian12:nonroot AS prod
-COPY --from=build /app/dist/server /server
+RUN bun run warm
+USER bun
 EXPOSE 8080
-CMD ["/server"]
+CMD ["bun", "src/main.ts"]
