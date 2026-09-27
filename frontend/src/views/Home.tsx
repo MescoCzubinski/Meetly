@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowRight } from "lucide-react";
+import { Send } from "lucide-react";
 import { API_URL } from "../api";
 import type { Session } from "../storage";
 import Container from "../components/Container";
@@ -20,6 +20,7 @@ export default function Home({
 }) {
   const [code, setCode] = useState<string>("");
   const [showError, setShowError] = useState(false);
+  const [error, setError] = useState("");
   const [active, setActive] = useState<Session[]>([]);
 
   useEffect(() => {
@@ -65,14 +66,19 @@ export default function Home({
               placeholder="Or enter the code here"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              onSubmit={() => {
-                if (code.length === 6) {
-                  onJoin(code);
-                } else {
+              onSubmit={async () => {
+                const fail = (message: string) => {
+                  setError(message);
                   setShowError(true);
-                }
+                };
+                if (!/^\d{6}$/.test(code)) return fail("code is 6 digits long");
+                const exists = await fetch(`${API_URL}/sessions/${code}`)
+                  .then((res) => res.ok)
+                  .catch(() => false);
+                if (exists) onJoin(code);
+                else fail("session not found");
               }}
-              button={<ArrowRight />}
+              button={<Send />}
               buttonLabel="Join"
             />
             <div
@@ -80,9 +86,7 @@ export default function Home({
               className={`-mt-4 grid transition-[grid-template-rows] duration-300 ${showError ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
             >
               <div className="overflow-hidden">
-                <p className="pt-4 w-full text-center">
-                  code is 6 characters long
-                </p>
+                <p className="pt-4 w-full text-center">{error}</p>
               </div>
             </div>
           </CardContent>

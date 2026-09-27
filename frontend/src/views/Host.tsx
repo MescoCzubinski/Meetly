@@ -6,8 +6,10 @@ import Profile from "../components/Profile";
 import { Button } from "@/components/ui/button";
 
 export default function Host({
+  onCode,
   onDone,
 }: {
+  onCode: (code: string) => void;
   onDone: (code: string, name: string) => void;
 }) {
   const URL = import.meta.env.VITE_URL;
@@ -38,7 +40,10 @@ export default function Host({
             size="lg"
             className="h-12 w-full text-2xl font-heading disabled:opacity-100 data-disabled:opacity-100"
             disabled={!code}
-            onClick={() => setShowQR(false)}
+            onClick={() => {
+              setShowQR(false);
+              onCode(code);
+            }}
           >
             Next
           </Button>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Send } from "lucide-react";
 import InputWithButton from "./InputWithButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -31,7 +32,8 @@ export default function Name({
             const value = name.trim();
             if (value) onSubmit(value);
           }}
-          button="Next"
+          button={<Send />}
+          buttonLabel="Next"
         />
       </CardContent>
     </Card>

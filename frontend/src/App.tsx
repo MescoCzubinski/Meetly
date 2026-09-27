@@ -35,6 +35,7 @@ export default function App() {
 
   const [sessions, setSessions] = useState<Session[]>(loadSessions);
   const [showingAbout, setShowingAbout] = useState(false);
+  const [hostCode, setHostCode] = useState("");
 
   useEffect(() => window.history.replaceState(state, ""), [state]);
 
@@ -44,23 +45,25 @@ export default function App() {
     setSessions(saveSession({ code, name, guest }));
   }, [state]);
 
-  const isGuest =
-    state.view === "guest" || (state.view === "answers" && state.guest);
-  const favicon = isGuest ? "/favicon-card.ico" : "/favicon-main.ico";
-  useEffect(() => {
-    const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (icon) icon.href = favicon;
-  }, [favicon]);
-
   const goHome =
     state.view === "home" ? undefined : () => setState({ view: "home" });
+
+  const headerCode =
+    state.view === "host"
+      ? hostCode
+      : state.view === "guest" && /^\d{6}$/.test(state.code)
+        ? state.code
+        : undefined;
 
   let view: ReactNode;
   switch (state.view) {
     case "home":
       view = (
         <Home
-          onHost={() => setState({ view: "host" })}
+          onHost={() => {
+            setHostCode("");
+            setState({ view: "host" });
+          }}
           onJoin={(code) => setState({ view: "guest", code })}
           sessions={sessions}
           onResume={(session) => setState({ view: "answers", ...session })}
@@ -70,6 +73,7 @@ export default function App() {
     case "host":
       view = (
         <Host
+          onCode={setHostCode}
           onDone={(code, name) =>
             setState({ view: "answers", code, name, guest: false })
           }
@@ -92,7 +96,6 @@ export default function App() {
         <Answers
           code={state.code}
           name={state.name}
-          favicon={favicon}
           onHome={goHome}
         />
       );
@@ -101,9 +104,7 @@ export default function App() {
 
   return (
     <>
-      {state.view !== "answers" && (
-        <Header favicon={favicon} onHome={goHome} />
-      )}
+      {state.view !== "answers" && <Header onHome={goHome} code={headerCode} />}
       {view}
       <Button
         variant="neutral"

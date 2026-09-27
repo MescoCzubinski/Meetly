@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
+import { copyInviteLink } from "../utils/copyInviteLink";
 import { Button } from "@/components/ui/button";
 
 const link = (url: string, code: string) => url + "?code=" + code;
@@ -24,15 +25,10 @@ export default function QRCode({ url, code }: { url: string; code: string }) {
   return (
     <div className="flex w-full flex-col gap-4">
       <Button
-        aria-label="Copy code"
+        aria-label="Copy invitation link"
         className="h-14 w-full text-2xl font-heading disabled:opacity-100 data-disabled:opacity-100"
         disabled={!code}
-        onClick={() => {
-          navigator.clipboard?.writeText(code).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1300);
-          });
-        }}
+        onClick={() => copyInviteLink(code, setCopied)}
       >
         {copied ? "Copied!" : code || scrambled.code}
       </Button>
