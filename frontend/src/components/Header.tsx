@@ -13,7 +13,7 @@ export default function Header({
   const [copied, setCopied] = useState(false);
 
   return (
-    <header className="pointer-events-none fixed inset-x-4 top-4 z-10 flex items-start justify-between [&>*]:pointer-events-auto">
+    <header className="flex items-start justify-between">
       <button
         type="button"
         className={`flex items-center gap-2 rounded-base border-2 border-border bg-secondary-background px-4 py-2 shadow-shadow ${onHome ? "cursor-pointer" : "cursor-default"}`}

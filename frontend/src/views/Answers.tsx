@@ -1,6 +1,5 @@
 import { X } from "lucide-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import Header from "@/components/Header";
 import InterestInput from "@/components/InterestInput";
 import LinkedGraph from "@/components/LinkedGraph";
 import { Badge } from "@/components/ui/badge";
@@ -10,19 +9,16 @@ import { Label } from "@/components/ui/label";
 export default function Answers({
   code,
   name,
-  onHome,
 }: {
   code: string;
   name: string;
-  onHome?: () => void;
 }) {
   const { answers, links, sendMessage } = useWebSocket(code);
   const own = answers.find((res) => res.name === name);
   const interests = own?.interests ?? [];
 
   return (
-    <div className="flex h-dvh w-full flex-col gap-4 p-4">
-      <Header onHome={onHome} code={code} />
+    <div className="flex w-full flex-1 flex-col gap-4">
       <LinkedGraph answers={answers} links={links} own={name} />
       <Card size="sm" className="mx-auto w-full max-w-sm">
         <CardContent className="flex flex-col gap-4">
@@ -30,16 +26,18 @@ export default function Answers({
             {interests.map((interest, index) => (
               <Badge key={index} variant="neutral" className="text-base">
                 {interest}
-                <button
-                  type="button"
-                  className="cursor-pointer"
-                  aria-label={`Remove ${interest}`}
-                  onClick={() =>
-                    sendMessage(name, interests.filter((_, i) => i !== index))
-                  }
-                >
-                  <X />
-                </button>
+                {interests.length > 1 && (
+                  <button
+                    type="button"
+                    className="cursor-pointer"
+                    aria-label={`Remove ${interest}`}
+                    onClick={() =>
+                      sendMessage(name, interests.filter((_, i) => i !== index))
+                    }
+                  >
+                    <X />
+                  </button>
+                )}
               </Badge>
             ))}
           </div>

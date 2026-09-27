@@ -51,7 +51,8 @@ export default function App() {
   const headerCode =
     state.view === "host"
       ? hostCode
-      : state.view === "guest" && /^\d{6}$/.test(state.code)
+      : state.view === "answers" ||
+          (state.view === "guest" && /^\d{6}$/.test(state.code))
         ? state.code
         : undefined;
 
@@ -93,19 +94,17 @@ export default function App() {
       break;
     case "answers":
       view = (
-        <Answers
-          code={state.code}
-          name={state.name}
-          onHome={goHome}
-        />
+        <Answers code={state.code} name={state.name} />
       );
       break;
   }
 
   return (
     <>
-      {state.view !== "answers" && <Header onHome={goHome} code={headerCode} />}
-      {view}
+      <div className="flex min-h-dvh flex-col gap-4 p-4">
+        <Header onHome={goHome} code={headerCode} />
+        {view}
+      </div>
       <Button
         variant="neutral"
         aria-label="About Meetly"
