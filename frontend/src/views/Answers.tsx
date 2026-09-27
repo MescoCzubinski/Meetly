@@ -1,8 +1,8 @@
 import { X } from "lucide-react";
-import { useWebSocket } from "../hooks/useWebSocket";
-import Header from "../components/Header";
-import InterestInput from "../components/InterestInput";
-import LinkedGraph from "../components/LinkedGraph";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import Header from "@/components/Header";
+import InterestInput from "@/components/InterestInput";
+import LinkedGraph from "@/components/LinkedGraph";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";

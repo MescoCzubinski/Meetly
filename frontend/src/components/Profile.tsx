@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { useWebSocket } from "../hooks/useWebSocket";
-import Name from "./Name";
-import InterestInput from "./InterestInput";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import Name from "@/components/Name";
+import InterestInput from "@/components/InterestInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Send } from "lucide-react";
-import { API_URL } from "../api";
-import type { Session } from "../storage";
-import Container from "../components/Container";
-import InputWithButton from "../components/InputWithButton";
+import { API_URL } from "@/api";
+import type { Session } from "@/storage";
+import Container from "@/components/Container";
+import InputWithButton from "@/components/InputWithButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 

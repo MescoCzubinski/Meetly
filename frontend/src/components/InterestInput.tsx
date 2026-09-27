@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import InputWithButton from "./InputWithButton";
+import InputWithButton from "@/components/InputWithButton";
 
 export default function InterestInput({
   onAdd,

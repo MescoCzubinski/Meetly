@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { copyInviteLink } from "../utils/copyInviteLink";
+import { copyInviteLink } from "@/utils/copyInviteLink";
 import { Button } from "@/components/ui/button";
 
 const link = (url: string, code: string) => url + "?code=" + code;

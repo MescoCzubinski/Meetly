@@ -1,13 +1,13 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Info } from "lucide-react";
-import Home from "./views/Home.tsx";
-import Guest from "./views/Guest.tsx";
-import Host from "./views/Host.tsx";
-import Answers from "./views/Answers.tsx";
-import Header from "./components/Header.tsx";
-import AboutModal from "./components/modals/AboutModal.tsx";
+import Home from "@/views/Home";
+import Guest from "@/views/Guest";
+import Host from "@/views/Host";
+import Answers from "@/views/Answers";
+import Header from "@/components/Header";
+import AboutModal from "@/components/modals/AboutModal";
 import { Button } from "@/components/ui/button";
-import { loadSessions, saveSession, type Session } from "./storage.ts";
+import { loadSessions, saveSession, type Session } from "@/storage";
 
 type State =
   | { view: "home" }

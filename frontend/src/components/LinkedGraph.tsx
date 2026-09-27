@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import type { Answer, Link } from "../hooks/useWebSocket";
+import type { Answer, Link } from "@/hooks/useWebSocket";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { simulateForces, type Body } from "../utils/simulateForces";
+import { simulateForces, type Body } from "@/utils/simulateForces";
 
 export default function LinkedGraph({
   answers,

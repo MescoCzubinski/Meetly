@@ -1,6 +1,6 @@
 import { useState } from "react";
-import ConfirmModal from "./modals/ConfirmModal";
-import { copyInviteLink } from "../utils/copyInviteLink";
+import ConfirmModal from "@/components/modals/ConfirmModal";
+import { copyInviteLink } from "@/utils/copyInviteLink";
 
 export default function Header({
   onHome,

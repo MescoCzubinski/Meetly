@@ -1,4 +1,4 @@
-import Modal from "./Modal";
+import Modal from "@/components/modals/Modal";
 import { Button } from "@/components/ui/button";
 
 export default function ConfirmModal({

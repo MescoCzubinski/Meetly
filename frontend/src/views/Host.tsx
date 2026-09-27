@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { API_URL } from "../api";
-import Container from "../components/Container";
-import QRCode from "../components/QRCode";
-import Profile from "../components/Profile";
+import { API_URL } from "@/api";
+import Container from "@/components/Container";
+import QRCode from "@/components/QRCode";
+import Profile from "@/components/Profile";
 import { Button } from "@/components/ui/button";
 
 export default function Host({

@@ -1,5 +1,5 @@
-import Container from "../components/Container";
-import Profile from "../components/Profile";
+import Container from "@/components/Container";
+import Profile from "@/components/Profile";
 import { Button } from "@/components/ui/button";
 import {
   Card,
