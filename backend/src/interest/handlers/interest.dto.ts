@@ -6,7 +6,7 @@ import {
   MaxLength,
 } from "class-validator";
 
-export class AnswerDto {
+export class InterestDto {
   @IsString()
   @Matches(/\S/, { message: "name must not be blank" })
   @MaxLength(20)

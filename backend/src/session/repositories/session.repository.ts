@@ -1,10 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import type { AnswerDto } from "../handlers/answer.dto";
 
 export interface Session {
-  answers: AnswerDto[];
-  removals: Map<string, NodeJS.Timeout>;
-  emptyTimer?: NodeJS.Timeout;
   hostToken: string;
   expiresAt: number;
 }
