@@ -13,24 +13,30 @@ export default function Home({
   onJoin,
   sessions,
   onResume,
+  onEnded,
 }: {
   onHost: () => void;
   onJoin: (code: string) => void;
   sessions: Session[];
   onResume: (session: Session) => void;
+  onEnded: (codes: string[]) => void;
 }) {
   const [code, setCode] = useState<string>("");
   const [active, setActive] = useState<Session[]>([]);
 
   useEffect(() => {
     let ignore = false;
-    Promise.all(sessions.map((s) => sessionExists(s.code))).then((exists) => {
-      if (!ignore) setActive(sessions.filter((_, i) => exists[i]));
+    const codes = [...new Set(sessions.map((s) => s.code))];
+    Promise.all(codes.map(sessionExists)).then((exists) => {
+      if (ignore) return;
+      const ended = codes.filter((_, i) => exists[i] === false);
+      if (ended.length > 0) onEnded(ended);
+      setActive(sessions.filter((s) => exists[codes.indexOf(s.code)] === true));
     });
     return () => {
       ignore = true;
     };
-  }, [sessions]);
+  }, [sessions, onEnded]);
 
   return (
     <Container>

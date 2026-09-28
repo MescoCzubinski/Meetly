@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Info } from "lucide-react";
 import { isValidCode } from "@/lib/api";
 import Home from "@/views/Home";
@@ -9,7 +9,12 @@ import Background from "@/components/Background";
 import Header from "@/components/Header";
 import AboutModal from "@/components/modals/AboutModal";
 import { Button } from "@/components/ui/button";
-import { loadSessions, saveSession, type Session } from "@/lib/storage";
+import {
+  loadSessions,
+  removeSessions,
+  saveSession,
+  type Session,
+} from "@/lib/storage";
 
 type State =
   | { view: "home" }
@@ -36,6 +41,10 @@ export default function App() {
   const [state, setState] = useState<State>(initialState);
 
   const [sessions, setSessions] = useState<Session[]>(loadSessions);
+  const removeEnded = useCallback(
+    (codes: string[]) => setSessions(removeSessions(codes)),
+    [],
+  );
   const [showingAbout, setShowingAbout] = useState(false);
   const [hostCode, setHostCode] = useState("");
 
@@ -70,6 +79,7 @@ export default function App() {
           onJoin={(code) => setState({ view: "guest", code })}
           sessions={sessions}
           onResume={(session) => setState({ view: "answers", ...session })}
+          onEnded={removeEnded}
         />
       );
       break;

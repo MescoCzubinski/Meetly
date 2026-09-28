@@ -32,7 +32,11 @@ export const useWebSocket = (code: string, name?: string) => {
       setSocket(null);
     };
 
-    return () => ws.close();
+    return () => {
+      ws.onmessage = ws.onclose = null;
+      if (ws.readyState === WebSocket.CONNECTING) ws.onopen = () => ws.close();
+      else ws.close();
+    };
   }, [code, name]);
 
   const sendMessage = (name: string, interests: string[]) => {

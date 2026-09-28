@@ -10,13 +10,7 @@ export const loadSessions = (): Session[] => {
   }
 };
 
-export const saveSession = (session: Session): Session[] => {
-  const next = [
-    session,
-    ...loadSessions().filter(
-      (s) => s.code !== session.code || s.name !== session.name,
-    ),
-  ];
+const storeSessions = (next: Session[]): Session[] => {
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
   } catch {
@@ -24,6 +18,17 @@ export const saveSession = (session: Session): Session[] => {
   }
   return next;
 };
+
+export const saveSession = (session: Session): Session[] =>
+  storeSessions([
+    session,
+    ...loadSessions().filter(
+      (s) => s.code !== session.code || s.name !== session.name,
+    ),
+  ]);
+
+export const removeSessions = (codes: string[]): Session[] =>
+  storeSessions(loadSessions().filter((s) => !codes.includes(s.code)));
 
 const HOST_TOKENS_KEY = "hostTokens";
 
