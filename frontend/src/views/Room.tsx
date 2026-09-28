@@ -17,7 +17,7 @@ export default function Room({
   name: string;
   onHome: () => void;
 }) {
-  const { answers, links, ended, sendMessage } = useWebSocket(code, name);
+  const { answers, links, ended, sendInterests } = useWebSocket(code, name);
   const own = answers.find((res) => res.name === name);
   const interests = own?.interests ?? [];
 
@@ -36,7 +36,7 @@ export default function Room({
                     className="cursor-pointer"
                     aria-label={`Remove ${interest}`}
                     onClick={() =>
-                      sendMessage(name, interests.filter((_, i) => i !== index))
+                      sendInterests(name, interests.filter((_, i) => i !== index))
                     }
                   >
                     <X />
@@ -49,7 +49,7 @@ export default function Room({
             Add an interest
           </Label>
           <InterestInput
-            onAdd={(interest) => sendMessage(name, [...interests, interest])}
+            onAdd={(interest) => sendInterests(name, [...interests, interest])}
           />
         </CardContent>
       </Card>

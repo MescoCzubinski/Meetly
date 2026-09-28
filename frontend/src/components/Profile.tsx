@@ -33,7 +33,7 @@ export default function Profile({
 }) {
   const [name, setName] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
-  const { sendMessage } = useWebSocket(code);
+  const { sendInterests } = useWebSocket(code);
 
   const [badgesHeight, setBadgesHeight] = useState<number>();
   const measureBadges = useCallback((el: HTMLDivElement | null) => {
@@ -112,7 +112,7 @@ export default function Profile({
           className="w-full text-lg"
           disabled={interests.length === 0}
           onClick={() => {
-            sendMessage(name, interests);
+            sendInterests(name, interests);
             onDone(name);
           }}
         >
