@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Info } from "lucide-react";
-import { isValidCode } from "@/lib/api";
 import Home from "@/views/Home";
-import Guest from "@/views/Guest";
-import Host from "@/views/Host";
-import Answers from "@/views/Answers";
+import JoinSession from "@/views/JoinSession";
+import CreateSession from "@/views/CreateSession";
+import Room from "@/views/Room";
 import Background from "@/components/Background";
 import Header from "@/components/Header";
 import AboutModal from "@/components/modals/AboutModal";
@@ -18,15 +17,15 @@ import {
 
 type State =
   | { view: "home" }
-  | { view: "host" }
-  | { view: "guest"; code: string }
-  | { view: "answers"; code: string; name: string; guest: boolean };
+  | { view: "create" }
+  | { view: "join"; code: string; guest: boolean }
+  | { view: "room"; code: string; name: string; guest: boolean };
 
 const initialState = ((): State => {
   const code = new URLSearchParams(window.location.search).get("code");
   if (code !== null) {
     window.history.replaceState(null, "", "/");
-    return { view: "guest", code };
+    return { view: "join", code, guest: true };
   }
   const navigation = performance.getEntriesByType("navigation")[0] as
     | PerformanceNavigationTiming
@@ -46,12 +45,12 @@ export default function App() {
     [],
   );
   const [showingAbout, setShowingAbout] = useState(false);
-  const [hostCode, setHostCode] = useState("");
+  const [joinedCode, setJoinedCode] = useState("");
 
   useEffect(() => window.history.replaceState(state, ""), [state]);
 
   useEffect(() => {
-    if (state.view !== "answers") return;
+    if (state.view !== "room") return;
     const { code, name, guest } = state;
     setSessions(saveSession({ code, name, guest }));
   }, [state]);
@@ -60,53 +59,51 @@ export default function App() {
     state.view === "home" ? undefined : () => setState({ view: "home" });
 
   const headerCode =
-    state.view === "host"
-      ? hostCode
-      : state.view === "answers" ||
-          (state.view === "guest" && isValidCode(state.code))
-        ? state.code
-        : undefined;
+    state.view === "room" ||
+    (state.view === "join" && state.code === joinedCode)
+      ? state.code
+      : undefined;
 
   let view: ReactNode;
   switch (state.view) {
     case "home":
       view = (
         <Home
-          onHost={() => {
-            setHostCode("");
-            setState({ view: "host" });
-          }}
-          onJoin={(code) => setState({ view: "guest", code })}
+          onHost={() => setState({ view: "create" })}
+          onJoin={(code) => setState({ view: "join", code, guest: true })}
           sessions={sessions}
-          onResume={(session) => setState({ view: "answers", ...session })}
+          onResume={(session) => setState({ view: "room", ...session })}
           onEnded={removeEnded}
         />
       );
       break;
-    case "host":
+    case "create":
       view = (
-        <Host
-          onCode={setHostCode}
-          onDone={(code, name) =>
-            setState({ view: "answers", code, name, guest: false })
-          }
+        <CreateSession
+          onDone={(code) => setState({ view: "join", code, guest: false })}
         />
       );
       break;
-    case "guest":
+    case "join":
       view = (
-        <Guest
+        <JoinSession
           code={state.code}
+          onCode={setJoinedCode}
           onDone={(name) =>
-            setState({ view: "answers", code: state.code, name, guest: true })
+            setState({
+              view: "room",
+              code: state.code,
+              name,
+              guest: state.guest,
+            })
           }
           onHome={() => setState({ view: "home" })}
         />
       );
       break;
-    case "answers":
+    case "room":
       view = (
-        <Answers
+        <Room
           code={state.code}
           name={state.name}
           onHome={() => setState({ view: "home" })}
@@ -124,7 +121,7 @@ export default function App() {
           onAbout={() => setShowingAbout(true)}
           code={headerCode}
           host={
-            state.view === "host" || (state.view === "answers" && !state.guest)
+            (state.view === "join" || state.view === "room") && !state.guest
           }
         />
         {view}

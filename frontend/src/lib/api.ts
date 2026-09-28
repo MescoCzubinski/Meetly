@@ -1,11 +1,12 @@
 import { API_URL } from "@/lib/config";
-
-export const isValidCode = (code: string) => /^\d{6}$/.test(code);
+import { isValidCode } from "@/utils/isValidCode";
 
 export const sessionExists = (code: string) =>
-  fetch(`${API_URL}/sessions/${code}`)
-    .then((res) => res.ok)
-    .catch(() => undefined);
+  isValidCode(code)
+    ? fetch(`${API_URL}/sessions/${code}`)
+        .then((res) => res.ok)
+        .catch(() => undefined)
+    : Promise.resolve(false);
 
 export const createSession = (): Promise<{ code: string; hostToken: string }> =>
   fetch(`${API_URL}/sessions`, { method: "POST" }).then((res) => res.json());

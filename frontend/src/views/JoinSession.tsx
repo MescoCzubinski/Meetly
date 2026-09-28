@@ -1,4 +1,5 @@
-import { isValidCode } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { sessionExists } from "@/lib/api";
 import Container from "@/components/Container";
 import Profile from "@/components/Profile";
 import { Button } from "@/components/ui/button";
@@ -10,18 +11,34 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function Guest({
+export default function JoinSession({
   code,
+  onCode,
   onDone,
   onHome,
 }: {
   code: string;
+  onCode: (code: string) => void;
   onDone: (name: string) => void;
   onHome: () => void;
 }) {
+  const [exists, setExists] = useState<boolean>();
+
+  useEffect(() => {
+    let ignore = false;
+    sessionExists(code).then((ok) => {
+      if (ignore) return;
+      setExists(ok === true);
+      if (ok) onCode(code);
+    });
+    return () => {
+      ignore = true;
+    };
+  }, [code, onCode]);
+
   return (
     <Container>
-      {isValidCode(code) ? (
+      {exists === undefined ? null : exists ? (
         <Profile code={code} onDone={onDone} />
       ) : (
         <Card className="w-full">

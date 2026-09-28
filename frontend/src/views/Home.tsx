@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Send } from "lucide-react";
 import { toast } from "@/components/ui/toast";
-import { isValidCode, sessionExists } from "@/lib/api";
+import { sessionExists } from "@/lib/api";
+import { isValidCode } from "@/utils/isValidCode";
 import type { Session } from "@/lib/storage";
 import Container from "@/components/Container";
 import InputWithButton from "@/components/InputWithButton";
