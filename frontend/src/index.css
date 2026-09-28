@@ -36,6 +36,10 @@
 }
 
 @layer base {
+  html,
+  body {
+    overscroll-behavior: none;
+  }
   body {
     background-color: var(--background);
     font-weight: var(--font-weight-base);

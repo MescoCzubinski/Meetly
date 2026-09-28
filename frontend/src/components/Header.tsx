@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { GITHUB_URL } from "@/lib/config";
-import { copyInviteLink } from "@/utils/copyInviteLink";
 import github from "@/assets/github.svg";
 
 const large = "h-auto px-4 py-2 text-2xl font-heading";
@@ -30,7 +29,6 @@ export default function Header({
   host?: boolean;
 }) {
   const [confirming, setConfirming] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [ending, setEnding] = useState(false);
 
@@ -51,18 +49,10 @@ export default function Header({
             <Button
               variant="neutral"
               aria-label="Show invitation QR code"
-              className={`${icon} hidden md:inline-flex`}
+              className={icon}
               onClick={() => setSharing(true)}
             >
               <QrCode />
-            </Button>
-            <Button
-              variant="neutral"
-              aria-label="Copy invitation link"
-              className={`${large} cursor-copy`}
-              onClick={() => copyInviteLink(code, setCopied)}
-            >
-              {copied ? "Copied!" : code}
             </Button>
             {onHome && (
               <Button
@@ -95,16 +85,11 @@ export default function Header({
           >
             <Menu />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {code && (
-              <DropdownMenuItem
-                className="text-lg"
-                onClick={() => setSharing(true)}
-              >
-                <QrCode />
-                Invite QR code
-              </DropdownMenuItem>
-            )}
+          <DropdownMenuContent
+            align="end"
+            sideOffset={8}
+            className="shadow-shadow"
+          >
             {code && onHome && (
               <DropdownMenuItem
                 className="text-lg"

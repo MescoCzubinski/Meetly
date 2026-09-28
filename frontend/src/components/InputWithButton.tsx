@@ -4,6 +4,13 @@ import { Input } from "@/components/ui/input";
 
 const MAX_INPUT_LENGTH = 20;
 
+const centerOnKeyboard = (el: HTMLElement) =>
+  window.visualViewport?.addEventListener(
+    "resize",
+    () => el.scrollIntoView({ block: "center", behavior: "smooth" }),
+    { once: true },
+  );
+
 export default function InputWithButton({
   onSubmit,
   button,
@@ -32,7 +39,12 @@ export default function InputWithButton({
         onSubmit(value);
       }}
     >
-      <Input autoComplete="off" className="h-12 text-lg" {...inputProps} />
+      <Input
+        autoComplete="off"
+        className="h-12 text-lg"
+        onFocus={(e) => centerOnKeyboard(e.currentTarget)}
+        {...inputProps}
+      />
       <Button
         type="submit"
         variant="noShadow"

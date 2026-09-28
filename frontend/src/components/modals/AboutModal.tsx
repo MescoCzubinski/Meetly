@@ -13,15 +13,15 @@ export default function AboutModal({
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="About Meetly">
       <div className="flex flex-col gap-3">
-        <p>Meetly helps people in one room find each other.</p>
+        <p>
+          A web app that helps people in one room find each other. A host starts
+          a session, guests join with a 6-digit code or a QR code, and everyone
+          types in their interests. People are shown as cards on a live graph,
+          and the cards of people with similar interests are pulled together.
+        </p>
         <p>
           Interests are matched by meaning, not spelling, using the{" "}
-          <a
-            className={link}
-            href={MODEL_URL}
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a className={link} href={MODEL_URL} target="_blank" rel="noreferrer">
             paraphrase-multilingual-MiniLM-L12-v2
           </a>{" "}
           embedding model.

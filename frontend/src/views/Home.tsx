@@ -50,6 +50,8 @@ export default function Home({
             <InputWithButton
               aria-label="input code"
               inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={6}
               placeholder="Or enter the code here"
               value={code}
               onChange={(e) => setCode(e.target.value)}
