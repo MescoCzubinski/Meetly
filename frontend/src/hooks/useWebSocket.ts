@@ -4,7 +4,7 @@ import { WS_URL } from "@/lib/config";
 export type Answer = { name: string; interests: string[]; active: boolean };
 export type Link = [string, string, number];
 
-const close = (ws: WebSocket) => {
+export const closeSocket = (ws: WebSocket) => {
   ws.onmessage = ws.onclose = null;
   if (ws.readyState === WebSocket.CONNECTING) ws.onopen = () => ws.close();
   else ws.close();
@@ -45,8 +45,8 @@ export const useWebSocket = (code: string, name?: string) => {
     };
 
     return () => {
-      close(presence);
-      close(interests);
+      closeSocket(presence);
+      closeSocket(interests);
     };
   }, [code, name]);
 

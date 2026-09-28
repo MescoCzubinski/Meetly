@@ -43,6 +43,20 @@ export default function Profile({
     return () => observer.disconnect();
   }, []);
 
+  const addInterest = (interest: string) => {
+    const lower = interest.toLowerCase();
+    const existing = interests.find((i) => i.toLowerCase() === lower);
+    if (existing) {
+      toast.add({
+        type: "error",
+        title: "Already added",
+        description: `"${existing}" is already on your list`,
+      });
+      return;
+    }
+    setInterests([...interests, interest]);
+  };
+
   if (!name) return <Name onSubmit={setName} />;
 
   return (
@@ -55,22 +69,7 @@ export default function Profile({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <InterestInput
-          autoFocus
-          onAdd={(interest) => {
-            const lower = interest.toLowerCase();
-            const existing = interests.find((i) => i.toLowerCase() === lower);
-            if (existing) {
-              toast.add({
-                type: "error",
-                title: "Already added",
-                description: `"${existing}" is already on your list`,
-              });
-              return;
-            }
-            setInterests([...interests, interest]);
-          }}
-        />
+        <InterestInput autoFocus onAdd={addInterest} />
         <div
           style={{ height: badgesHeight }}
           className="overflow-hidden transition-[height] duration-300"
@@ -94,9 +93,17 @@ export default function Profile({
               ))
             ) : (
               <>
-                <span className="text-lg">E.g.</span>
+                <span className="text-lg font-heading text-white [-webkit-text-stroke:4px_var(--border)] [paint-order:stroke_fill]">
+                  E.g.
+                </span>
                 {EXAMPLES.map((example) => (
-                  <Badge key={example} variant="neutral" className="text-base">
+                  <Badge
+                    key={example}
+                    variant="neutral"
+                    className="cursor-pointer text-base"
+                    render={<button type="button" />}
+                    onClick={() => addInterest(example)}
+                  >
                     {example}
                   </Badge>
                 ))}
