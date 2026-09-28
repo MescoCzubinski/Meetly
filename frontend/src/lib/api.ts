@@ -16,3 +16,16 @@ export const endSession = (code: string, hostToken: string) =>
     method: "DELETE",
     headers: { "X-Host-Token": hostToken },
   }).catch(() => {});
+
+export const joinSession = (
+  code: string,
+  name: string,
+): Promise<{ name: string; token: string }> =>
+  fetch(`${API_URL}/sessions/${code}/participants`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  }).then((res) => {
+    if (!res.ok) throw new Error(`Join failed: ${res.status}`);
+    return res.json();
+  });

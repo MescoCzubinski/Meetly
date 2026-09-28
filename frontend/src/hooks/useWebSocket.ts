@@ -10,25 +10,37 @@ export const closeSocket = (ws: WebSocket) => {
   else ws.close();
 };
 
-export const useWebSocket = (code: string, name?: string) => {
+const isEnded = (event: CloseEvent) => [4401, 4404, 4410].includes(event.code);
+
+export const useWebSocket = (
+  code: string,
+  token?: string,
+  anonymous = false,
+) => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [session, setSession] = useState<{ answers: Answer[]; links: Link[] }>({
     answers: [],
     links: [],
   });
   const [ended, setEnded] = useState(false);
+  const presenceToken = anonymous ? undefined : token;
 
   useEffect(() => {
     if (!code) return;
-    const params = new URLSearchParams({ code });
-    if (name) params.set("name", name);
+    const params = new URLSearchParams(
+      presenceToken ? { token: presenceToken } : { code },
+    );
     const presence = new WebSocket(`${WS_URL}/session?${params}`);
-    const interests = new WebSocket(`${WS_URL}/interests?code=${code}`);
-
-    const onClose = (event: CloseEvent) => {
-      if (event.code === 4410 || event.code === 4404) setEnded(true);
+    presence.onclose = (event) => {
+      if (isEnded(event)) setEnded(true);
     };
-    presence.onclose = onClose;
+    return () => closeSocket(presence);
+  }, [code, presenceToken]);
+
+  useEffect(() => {
+    if (!token) return;
+    const params = new URLSearchParams({ token });
+    const interests = new WebSocket(`${WS_URL}/interests?${params}`);
 
     interests.onopen = () => {
       setSocket(interests);
@@ -40,21 +52,16 @@ export const useWebSocket = (code: string, name?: string) => {
     };
 
     interests.onclose = (event) => {
-      onClose(event);
+      if (isEnded(event)) setEnded(true);
       setSocket(null);
     };
 
-    return () => {
-      closeSocket(presence);
-      closeSocket(interests);
-    };
-  }, [code, name]);
+    return () => closeSocket(interests);
+  }, [token]);
 
-  const sendInterests = (name: string, interests: string[]) => {
+  const sendInterests = (interests: string[]) => {
     if (socket) {
-      socket.send(
-        JSON.stringify({ event: "interest", data: { name, interests } }),
-      );
+      socket.send(JSON.stringify({ event: "interest", data: { interests } }));
     }
   };
 

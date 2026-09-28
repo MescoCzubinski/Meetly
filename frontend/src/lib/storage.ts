@@ -1,4 +1,9 @@
-export type Session = { code: string; name: string; guest: boolean };
+export type Session = {
+  code: string;
+  name: string;
+  guest: boolean;
+  token: string;
+};
 
 const SESSIONS_KEY = "sessions";
 const HOST_TOKENS_KEY = "hostTokens";
@@ -19,7 +24,8 @@ const write = (key: string, value: unknown) => {
   }
 };
 
-export const loadSessions = () => read<Session[]>(SESSIONS_KEY, []);
+export const loadSessions = () =>
+  read<Session[]>(SESSIONS_KEY, []).filter((s) => s.token);
 
 const storeSessions = (next: Session[]): Session[] => {
   write(SESSIONS_KEY, next);
@@ -39,8 +45,7 @@ export const removeSessions = (codes: string[]): Session[] =>
 
 const loadHostTokens = () => read<Record<string, string>>(HOST_TOKENS_KEY, {});
 
-export const loadHostToken = (code: string): string | undefined =>
-  loadHostTokens()[code];
+export const loadHostToken = (code: string): string => loadHostTokens()[code];
 
 export const saveHostToken = (code: string, token: string) =>
   write(HOST_TOKENS_KEY, { ...loadHostTokens(), [code]: token });

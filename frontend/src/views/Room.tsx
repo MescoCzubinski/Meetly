@@ -14,16 +14,18 @@ import { Label } from "@/components/ui/label";
 export default function Room({
   code,
   name,
+  token,
   onHome,
 }: {
   code: string;
   name: string;
+  token: string;
   onHome: () => void;
 }) {
-  const { answers, links, ended, sendInterests } = useWebSocket(code, name);
+  const { answers, links, ended, sendInterests } = useWebSocket(code, token);
   const own = answers.find((res) => res.name === name);
   const interests = own?.interests ?? [];
-  const { messages, sendMessage } = useMessages(code, name);
+  const { messages, sendMessage } = useMessages(token);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatWith, setChatWith] = useState<string | null>(null);
   const openChat = (person: string | null) => {
@@ -60,10 +62,7 @@ export default function Room({
                       className="cursor-pointer"
                       aria-label={`Remove ${interest}`}
                       onClick={() =>
-                        sendInterests(
-                          name,
-                          interests.filter((_, i) => i !== index),
-                        )
+                        sendInterests(interests.filter((_, i) => i !== index))
                       }
                     >
                       <X />
@@ -77,7 +76,7 @@ export default function Room({
             </Label>
             <InterestInput
               onAdd={(interest) =>
-                sendInterests(name, [...interests, interest])
+                sendInterests([...interests, interest])
               }
             />
           </CardContent>

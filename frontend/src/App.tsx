@@ -19,7 +19,13 @@ type State =
   | { view: "home" }
   | { view: "create" }
   | { view: "join"; code: string; guest: boolean }
-  | { view: "room"; code: string; name: string; guest: boolean };
+  | {
+      view: "room";
+      code: string;
+      name: string;
+      guest: boolean;
+      token: string;
+    };
 
 const initialState = ((): State => {
   const code = new URLSearchParams(window.location.search).get("code");
@@ -51,8 +57,8 @@ export default function App() {
 
   useEffect(() => {
     if (state.view !== "room") return;
-    const { code, name, guest } = state;
-    setSessions(saveSession({ code, name, guest }));
+    const { code, name, guest, token } = state;
+    setSessions(saveSession({ code, name, guest, token }));
   }, [state]);
 
   const goHome =
@@ -89,12 +95,13 @@ export default function App() {
         <JoinSession
           code={state.code}
           onCode={setJoinedCode}
-          onDone={(name) =>
+          onDone={(name, token) =>
             setState({
               view: "room",
               code: state.code,
               name,
               guest: state.guest,
+              token,
             })
           }
           onHome={() => setState({ view: "home" })}
@@ -106,6 +113,7 @@ export default function App() {
         <Room
           code={state.code}
           name={state.name}
+          token={state.token}
           onHome={() => setState({ view: "home" })}
         />
       );

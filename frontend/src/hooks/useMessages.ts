@@ -9,12 +9,12 @@ export type ChatMessage = {
   sentAt: number;
 };
 
-export const useMessages = (code: string, name: string) => {
+export const useMessages = (token: string) => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
-    const params = new URLSearchParams({ code, name });
+    const params = new URLSearchParams({ token });
     const ws = new WebSocket(`${WS_URL}/messages?${params}`);
 
     ws.onopen = () => {
@@ -32,7 +32,7 @@ export const useMessages = (code: string, name: string) => {
     };
 
     return () => closeSocket(ws);
-  }, [code, name]);
+  }, [token]);
 
   const sendMessage = (to: string, text: string) => {
     if (socket) {
