@@ -4,14 +4,10 @@ import type { AnswerDto } from "../handlers/answer.dto";
 import { EmbeddingService } from "./embedding.service";
 import { SessionNotFoundException } from "../exceptions/not-found";
 import { InvalidSessionCodeException } from "../exceptions/invalid-code";
-
-interface Session {
-  answers: AnswerDto[];
-  removals: Map<string, NodeJS.Timeout>;
-  emptyTimer?: NodeJS.Timeout;
-  hostToken: string;
-  expiresAt: number;
-}
+import {
+  type Session,
+  SessionRepository,
+} from "../repositories/session.repository";
 
 const SESSION_TTL = 60 * 60 * 1000; // 1 hour
 const INACTIVE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -23,10 +19,12 @@ const CODE_PATTERN = /^\d{6}$/;
 
 @Injectable()
 export class SessionService {
-  private readonly sessions = new Map<string, Session>();
   private readonly endedListeners: ((code: string) => void)[] = [];
 
-  constructor(private readonly embeddingService: EmbeddingService) {
+  constructor(
+    private readonly sessionRepository: SessionRepository,
+    private readonly embeddingService: EmbeddingService,
+  ) {
     setInterval(() => this.removeExpired(), CLEANUP_INTERVAL);
   }
 
@@ -34,10 +32,10 @@ export class SessionService {
     let code: string;
     do {
       code = randomInt(100000, 1000000).toString();
-    } while (this.sessions.has(code));
+    } while (this.sessionRepository.has(code));
 
     const hostToken = randomUUID();
-    this.sessions.set(code, {
+    this.sessionRepository.save(code, {
       answers: [],
       removals: new Map(),
       hostToken,
@@ -48,7 +46,7 @@ export class SessionService {
 
   end(code: string, hostToken: string): void {
     this.assertValidSession(code);
-    if (this.sessions.get(code)?.hostToken !== hostToken)
+    if (this.sessionRepository.find(code)?.hostToken !== hostToken)
       throw new ForbiddenException("Only the host can end the session");
     this.remove(code);
   }
@@ -143,17 +141,17 @@ export class SessionService {
   }
 
   private removeExpired(): void {
-    for (const [code, session] of this.sessions) {
+    for (const [code, session] of this.sessionRepository.findAll()) {
       if (session.expiresAt <= Date.now()) this.remove(code);
     }
   }
 
   private remove(code: string): void {
-    const session = this.sessions.get(code);
+    const session = this.sessionRepository.find(code);
     if (!session) return;
     session.removals.forEach(clearTimeout);
     clearTimeout(session.emptyTimer);
-    this.sessions.delete(code);
+    this.sessionRepository.delete(code);
     this.endedListeners.forEach((listener) => listener(code));
   }
 
@@ -171,7 +169,7 @@ export class SessionService {
   }
 
   private get(code: string): Session | undefined {
-    const session = this.sessions.get(code);
+    const session = this.sessionRepository.find(code);
     return session && session.expiresAt > Date.now() ? session : undefined;
   }
 }
