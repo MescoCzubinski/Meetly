@@ -74,6 +74,8 @@ export class MessageGateway
   ) {
     const info = this.clients.get(client);
     if (!info || !this.messageService.isActive(info.code)) return;
+    if (!this.messageService.isRegistered(info.code, body.to))
+      throw new WsException("Unknown recipient");
 
     const message = this.messageService.send(
       info.code,

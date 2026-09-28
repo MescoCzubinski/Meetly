@@ -17,10 +17,17 @@ export class MessageService {
     eventBus.on("session.ended", (code) =>
       messageRepository.deleteSession(code),
     );
+    eventBus.on("participant.registered", (code, name) =>
+      messageRepository.addParticipant(code, name),
+    );
   }
 
   isActive(code: string): boolean {
     return this.messageRepository.hasSession(code);
+  }
+
+  isRegistered(code: string, name: string): boolean {
+    return this.messageRepository.hasParticipant(code, name);
   }
 
   send(code: string, from: string, to: string, text: string): Message {

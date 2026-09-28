@@ -65,5 +65,5 @@ export const useWebSocket = (
     }
   };
 
-  return { ...session, ended, sendInterests };
+  return { ...session, ended, ready: socket !== null, sendInterests };
 };

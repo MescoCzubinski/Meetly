@@ -37,7 +37,7 @@ export default function Profile({
     token: string;
   }>();
   const [interests, setInterests] = useState<string[]>([]);
-  const { sendInterests } = useWebSocket(code, participant?.token, true);
+  const { ready, sendInterests } = useWebSocket(code, participant?.token, true);
 
   const [badgesHeight, setBadgesHeight] = useState<number>();
   const measureBadges = useCallback((el: HTMLDivElement | null) => {
@@ -136,7 +136,7 @@ export default function Profile({
           type="button"
           size="lg"
           className="w-full text-lg"
-          disabled={interests.length === 0}
+          disabled={!ready || interests.length === 0}
           onClick={() => {
             sendInterests(interests);
             onDone(participant.name, participant.token);

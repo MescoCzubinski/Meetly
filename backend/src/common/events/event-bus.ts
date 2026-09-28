@@ -4,6 +4,7 @@ import { Injectable } from "@nestjs/common";
 interface Events {
   "session.created": [code: string];
   "session.ended": [code: string];
+  "participant.registered": [code: string, name: string];
   "participant.joined": [code: string, name: string];
   "participant.left": [code: string, name: string];
 }

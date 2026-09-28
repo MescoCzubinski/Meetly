@@ -81,8 +81,12 @@ export class SessionService {
     const { names } = this.get(code)!;
     const base = name.trim();
     let unique = base;
-    for (let i = 2; names.has(unique); i++) unique = `${base} (${i})`;
+    for (let i = 2; names.has(unique); i++) {
+      const suffix = ` (${i})`;
+      unique = `${base.slice(0, 20 - suffix.length)}${suffix}`;
+    }
     names.add(unique);
+    this.eventBus.emit("participant.registered", code, unique);
     return {
       name: unique,
       token: this.participantAuth.sign({ code, name: unique }),
