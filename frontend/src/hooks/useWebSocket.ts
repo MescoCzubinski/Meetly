@@ -4,48 +4,66 @@ import { WS_URL } from "@/lib/config";
 export type Answer = { name: string; interests: string[]; active: boolean };
 export type Link = [string, string, number];
 
-export const useWebSocket = (code: string, name?: string) => {
+export const closeSocket = (ws: WebSocket) => {
+  ws.onmessage = ws.onclose = null;
+  if (ws.readyState === WebSocket.CONNECTING) ws.onopen = () => ws.close();
+  else ws.close();
+};
+
+const isEnded = (event: CloseEvent) => [4401, 4404, 4410].includes(event.code);
+
+export const useWebSocket = (
+  code: string,
+  token?: string,
+  anonymous = false,
+) => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [session, setSession] = useState<{ answers: Answer[]; links: Link[] }>({
     answers: [],
     links: [],
   });
   const [ended, setEnded] = useState(false);
+  const presenceToken = anonymous ? undefined : token;
 
   useEffect(() => {
     if (!code) return;
-    const params = new URLSearchParams({ code });
-    if (name) params.set("name", name);
-    const ws = new WebSocket(`${WS_URL}/session?${params}`);
+    const params = new URLSearchParams(
+      presenceToken ? { token: presenceToken } : { code },
+    );
+    const presence = new WebSocket(`${WS_URL}/session?${params}`);
+    presence.onclose = (event) => {
+      if (isEnded(event)) setEnded(true);
+    };
+    return () => closeSocket(presence);
+  }, [code, presenceToken]);
 
-    ws.onopen = () => {
-      setSocket(ws);
+  useEffect(() => {
+    if (!token) return;
+    const params = new URLSearchParams({ token });
+    const interests = new WebSocket(`${WS_URL}/interests?${params}`);
+
+    interests.onopen = () => {
+      setSocket(interests);
     };
 
-    ws.onmessage = (message) => {
+    interests.onmessage = (message) => {
       const { event, data } = JSON.parse(message.data);
-      if (event === "session") setSession(data);
+      if (event === "interests") setSession(data);
     };
 
-    ws.onclose = (event) => {
-      if (event.code === 4410 || event.code === 4404) setEnded(true);
+    interests.onclose = (event) => {
+      if (isEnded(event)) setEnded(true);
       setSocket(null);
     };
 
-    return () => {
-      ws.onmessage = ws.onclose = null;
-      if (ws.readyState === WebSocket.CONNECTING) ws.onopen = () => ws.close();
-      else ws.close();
-    };
-  }, [code, name]);
+    return () => closeSocket(interests);
+  }, [token]);
 
-  const sendMessage = (name: string, interests: string[]) => {
+  const sendInterests = (interests: string[]) => {
     if (socket) {
-      socket.send(
-        JSON.stringify({ event: "answer", data: { name, interests } }),
-      );
+      socket.send(JSON.stringify({ event: "interest", data: { interests } }));
     }
   };
 
-  return { ...session, ended, sendMessage };
+  return { ...session, ended, ready: socket !== null, sendInterests };
 };

@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { joinSession } from "@/lib/api";
 import Name from "@/components/Name";
 import InterestInput from "@/components/InterestInput";
 import { Badge } from "@/components/ui/badge";
@@ -29,11 +30,14 @@ export default function Profile({
   onDone,
 }: {
   code: string;
-  onDone: (name: string) => void;
+  onDone: (name: string, token: string) => void;
 }) {
-  const [name, setName] = useState("");
+  const [participant, setParticipant] = useState<{
+    name: string;
+    token: string;
+  }>();
   const [interests, setInterests] = useState<string[]>([]);
-  const { sendMessage } = useWebSocket(code);
+  const { ready, sendInterests } = useWebSocket(code, participant?.token, true);
 
   const [badgesHeight, setBadgesHeight] = useState<number>();
   const measureBadges = useCallback((el: HTMLDivElement | null) => {
@@ -43,7 +47,36 @@ export default function Profile({
     return () => observer.disconnect();
   }, []);
 
-  if (!name) return <Name onSubmit={setName} />;
+  const addInterest = (interest: string) => {
+    const lower = interest.toLowerCase();
+    const existing = interests.find((i) => i.toLowerCase() === lower);
+    if (existing) {
+      toast.add({
+        type: "error",
+        title: "Already added",
+        description: `"${existing}" is already on your list`,
+      });
+      return;
+    }
+    setInterests([...interests, interest]);
+  };
+
+  if (!participant)
+    return (
+      <Name
+        onSubmit={(name) =>
+          joinSession(code, name)
+            .then(setParticipant)
+            .catch(() =>
+              toast.add({
+                type: "error",
+                title: "Could not join",
+                description: "Something went wrong, please try again",
+              }),
+            )
+        }
+      />
+    );
 
   return (
     <Card className="w-full">
@@ -55,22 +88,7 @@ export default function Profile({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <InterestInput
-          autoFocus
-          onAdd={(interest) => {
-            const lower = interest.toLowerCase();
-            const existing = interests.find((i) => i.toLowerCase() === lower);
-            if (existing) {
-              toast.add({
-                type: "error",
-                title: "Already added",
-                description: `"${existing}" is already on your list`,
-              });
-              return;
-            }
-            setInterests([...interests, interest]);
-          }}
-        />
+        <InterestInput autoFocus onAdd={addInterest} />
         <div
           style={{ height: badgesHeight }}
           className="overflow-hidden transition-[height] duration-300"
@@ -94,9 +112,17 @@ export default function Profile({
               ))
             ) : (
               <>
-                <span className="text-lg">E.g.</span>
+                <span className="text-lg font-heading text-white [-webkit-text-stroke:4px_var(--border)] [paint-order:stroke_fill]">
+                  E.g.
+                </span>
                 {EXAMPLES.map((example) => (
-                  <Badge key={example} variant="neutral" className="text-base">
+                  <Badge
+                    key={example}
+                    variant="neutral"
+                    className="cursor-pointer text-base"
+                    render={<button type="button" />}
+                    onClick={() => addInterest(example)}
+                  >
                     {example}
                   </Badge>
                 ))}
@@ -110,10 +136,10 @@ export default function Profile({
           type="button"
           size="lg"
           className="w-full text-lg"
-          disabled={interests.length === 0}
+          disabled={!ready || interests.length === 0}
           onClick={() => {
-            sendMessage(name, interests);
-            onDone(name);
+            sendInterests(interests);
+            onDone(participant.name, participant.token);
           }}
         >
           Send

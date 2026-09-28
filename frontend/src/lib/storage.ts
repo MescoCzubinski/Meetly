@@ -1,21 +1,34 @@
-export type Session = { code: string; name: string; guest: boolean };
+export type Session = {
+  code: string;
+  name: string;
+  guest: boolean;
+  token: string;
+};
 
-const KEY = "sessions";
+const SESSIONS_KEY = "sessions";
+const HOST_TOKENS_KEY = "hostTokens";
 
-export const loadSessions = (): Session[] => {
+const read = <T>(key: string, fallback: T): T => {
   try {
-    return JSON.parse(localStorage.getItem(KEY) ?? "[]");
+    return JSON.parse(localStorage.getItem(key) ?? "null") ?? fallback;
   } catch {
-    return [];
+    return fallback;
   }
 };
 
-const storeSessions = (next: Session[]): Session[] => {
+const write = (key: string, value: unknown) => {
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(key, JSON.stringify(value));
   } catch {
     // storage unavailable, keep in memory only
   }
+};
+
+export const loadSessions = () =>
+  read<Session[]>(SESSIONS_KEY, []).filter((s) => s.token);
+
+const storeSessions = (next: Session[]): Session[] => {
+  write(SESSIONS_KEY, next);
   return next;
 };
 
@@ -30,26 +43,9 @@ export const saveSession = (session: Session): Session[] =>
 export const removeSessions = (codes: string[]): Session[] =>
   storeSessions(loadSessions().filter((s) => !codes.includes(s.code)));
 
-const HOST_TOKENS_KEY = "hostTokens";
+const loadHostTokens = () => read<Record<string, string>>(HOST_TOKENS_KEY, {});
 
-const loadHostTokens = (): Record<string, string> => {
-  try {
-    return JSON.parse(localStorage.getItem(HOST_TOKENS_KEY) ?? "{}");
-  } catch {
-    return {};
-  }
-};
+export const loadHostToken = (code: string): string => loadHostTokens()[code];
 
-export const loadHostToken = (code: string): string | undefined =>
-  loadHostTokens()[code];
-
-export const saveHostToken = (code: string, token: string) => {
-  try {
-    localStorage.setItem(
-      HOST_TOKENS_KEY,
-      JSON.stringify({ ...loadHostTokens(), [code]: token }),
-    );
-  } catch {
-    // storage unavailable, host won't be able to end the session
-  }
-};
+export const saveHostToken = (code: string, token: string) =>
+  write(HOST_TOKENS_KEY, { ...loadHostTokens(), [code]: token });

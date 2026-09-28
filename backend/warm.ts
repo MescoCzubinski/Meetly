@@ -1,4 +1,4 @@
 // Downloads the embedding model into the cache next to the package
-import { EmbeddingService } from "./src/session/services/embedding.service";
+import { EmbeddingService } from "./src/interest/services/embedding.service";
 
 await new EmbeddingService().embed(["warmup"]);

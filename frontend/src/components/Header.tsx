@@ -31,6 +31,8 @@ export default function Header({
   const [confirming, setConfirming] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [ending, setEnding] = useState(false);
+  const leave = () => (host ? setEnding(true) : setConfirming(true));
+  const leaveLabel = host ? "End session" : "Leave";
 
   return (
     <header className="flex items-start justify-between">
@@ -57,9 +59,9 @@ export default function Header({
             {onHome && (
               <Button
                 className={`${large} hidden md:inline-flex`}
-                onClick={() => (host ? setEnding(true) : setConfirming(true))}
+                onClick={leave}
               >
-                {host ? "End session" : "Leave"}
+                {leaveLabel}
               </Button>
             )}
           </>
@@ -91,12 +93,9 @@ export default function Header({
             className="shadow-shadow"
           >
             {code && onHome && (
-              <DropdownMenuItem
-                className="text-lg"
-                onClick={() => (host ? setEnding(true) : setConfirming(true))}
-              >
-                {<LogOut />}
-                {host ? "End session" : "Leave"}
+              <DropdownMenuItem className="text-lg" onClick={leave}>
+                <LogOut />
+                {leaveLabel}
               </DropdownMenuItem>
             )}
             <DropdownMenuItem className="text-lg" onClick={onAbout}>

@@ -1,0 +1,92 @@
+import type { IncomingMessage } from "node:http";
+import { UsePipes, ValidationPipe } from "@nestjs/common";
+import {
+  ConnectedSocket,
+  MessageBody,
+  type OnGatewayConnection,
+  type OnGatewayDisconnect,
+  SubscribeMessage,
+  WebSocketGateway,
+  WsException,
+} from "@nestjs/websockets";
+import type { WebSocket } from "ws";
+import { ParticipantAuth } from "../../common/auth/participant-auth";
+import { EventBus } from "../../common/events/event-bus";
+import { MessageDto } from "./message.dto";
+import { MessageService } from "../services/message.service";
+
+@WebSocketGateway({ path: "/messages" })
+export class MessageGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
+  private readonly clients = new Map<
+    WebSocket,
+    { code: string; name: string }
+  >();
+
+  constructor(
+    private readonly messageService: MessageService,
+    private readonly participantAuth: ParticipantAuth,
+    eventBus: EventBus,
+  ) {
+    eventBus.on("session.ended", (code) => {
+      for (const [client, info] of this.clients) {
+        if (info.code === code) client.close(4410, "Session ended");
+      }
+    });
+  }
+
+  handleConnection(client: WebSocket, request: IncomingMessage) {
+    const participant = this.participantAuth.verify(request);
+    if (!participant) {
+      client.close(4401, "Invalid token");
+      return;
+    }
+    const { code, name } = participant;
+    if (!this.messageService.isActive(code)) {
+      client.close(4404, "Session not found");
+      return;
+    }
+
+    this.clients.set(client, { code, name });
+    client.send(
+      JSON.stringify({
+        event: "messages",
+        data: this.messageService.getFor(code, name),
+      }),
+    );
+  }
+
+  handleDisconnect(client: WebSocket) {
+    this.clients.delete(client);
+  }
+
+  @SubscribeMessage("message")
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      exceptionFactory: () => new WsException("Invalid message"),
+    }),
+  )
+  handleMessage(
+    @ConnectedSocket() client: WebSocket,
+    @MessageBody() body: MessageDto,
+  ) {
+    const info = this.clients.get(client);
+    if (!info || !this.messageService.isActive(info.code)) return;
+    if (!this.messageService.isRegistered(info.code, body.to))
+      throw new WsException("Unknown recipient");
+
+    const message = this.messageService.send(
+      info.code,
+      info.name,
+      body.to,
+      body.text,
+    );
+    const payload = JSON.stringify({ event: "message", data: message });
+    for (const [other, { code, name }] of this.clients) {
+      if (code === info.code && (name === message.from || name === message.to))
+        other.send(payload);
+    }
+  }
+}

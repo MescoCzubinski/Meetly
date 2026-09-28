@@ -19,7 +19,7 @@ export default function JoinSession({
 }: {
   code: string;
   onCode: (code: string) => void;
-  onDone: (name: string) => void;
+  onDone: (name: string, token: string) => void;
   onHome: () => void;
 }) {
   const [exists, setExists] = useState<boolean>();

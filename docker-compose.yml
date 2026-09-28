@@ -8,6 +8,7 @@ services:
     environment:
       - PORT=${PORT}
       - CORS_ORIGIN=${CORS_ORIGIN}
+      - JWT_SECRET=${JWT_SECRET}
     volumes:
       - ./backend:/app
       - /app/node_modules

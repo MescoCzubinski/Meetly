@@ -28,11 +28,12 @@ export default function InputWithButton({
         e.preventDefault();
         const value = String(inputProps.value).trim();
         if (!value) return;
-        if (value.length > MAX_INPUT_LENGTH) {
+        const limit = inputProps.maxLength ?? MAX_INPUT_LENGTH;
+        if (value.length > limit) {
           toast.add({
             type: "error",
             title: "Too long",
-            description: `Use at most ${MAX_INPUT_LENGTH} characters`,
+            description: `Use at most ${limit} characters`,
           });
           return;
         }

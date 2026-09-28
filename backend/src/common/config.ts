@@ -1,4 +1,5 @@
 export const config = {
-  port: Number(process.env.PORT) || 8080,
-  corsOrigin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  port: Number(process.env.PORT),
+  corsOrigin: process.env.CORS_ORIGIN,
+  jwtSecret: process.env.JWT_SECRET,
 };
