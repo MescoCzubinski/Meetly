@@ -10,6 +10,7 @@ import {
   WsException,
 } from "@nestjs/websockets";
 import type { WebSocket } from "ws";
+import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
 import { InterestDto } from "./interest.dto";
 import { InterestService } from "../services/interest.service";
@@ -18,15 +19,19 @@ import { InterestService } from "../services/interest.service";
 export class InterestGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  private readonly clients = new Map<WebSocket, string>();
+  private readonly clients = new Map<
+    WebSocket,
+    { code: string; name: string }
+  >();
 
   constructor(
     private readonly interestService: InterestService,
+    private readonly participantAuth: ParticipantAuth,
     eventBus: EventBus,
   ) {
     eventBus.on("session.ended", (code) => {
-      for (const [client, clientCode] of this.clients) {
-        if (clientCode === code) client.close(4410, "Session ended");
+      for (const [client, info] of this.clients) {
+        if (info.code === code) client.close(4410, "Session ended");
       }
     });
     eventBus.on("participant.joined", (code, name) => {
@@ -41,14 +46,18 @@ export class InterestGateway
   }
 
   handleConnection(client: WebSocket, request: IncomingMessage) {
-    const params = new URLSearchParams(request.url?.split("?")[1]);
-    const code = params.get("code") ?? "";
+    const participant = this.participantAuth.verify(request);
+    if (!participant) {
+      client.close(4401, "Invalid token");
+      return;
+    }
+    const { code } = participant;
     if (!this.interestService.isActive(code)) {
       client.close(4404, "Session not found");
       return;
     }
 
-    this.clients.set(client, code);
+    this.clients.set(client, participant);
     client.send(this.interestsMessage(code));
   }
 
@@ -65,20 +74,23 @@ export class InterestGateway
   )
   async handleAnswer(
     @ConnectedSocket() client: WebSocket,
-    @MessageBody() answer: InterestDto,
+    @MessageBody() body: InterestDto,
   ) {
-    const code = this.clients.get(client);
-    if (!code || !this.interestService.isActive(code)) return;
+    const info = this.clients.get(client);
+    if (!info || !this.interestService.isActive(info.code)) return;
 
-    await this.interestService.addAnswer(code, answer);
+    await this.interestService.addAnswer(info.code, {
+      name: info.name,
+      interests: body.interests,
+    });
 
-    this.broadcast(code);
+    this.broadcast(info.code);
   }
 
   private broadcast(code: string) {
     const message = this.interestsMessage(code);
-    for (const [client, clientCode] of this.clients) {
-      if (clientCode === code) client.send(message);
+    for (const [client, info] of this.clients) {
+      if (info.code === code) client.send(message);
     }
   }
 

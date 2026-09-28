@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 
 export interface Session {
-  hostToken: string;
   expiresAt: number;
+  names: Set<string>;
 }
 
 @Injectable()

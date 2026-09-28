@@ -1,5 +1,7 @@
-import { randomInt, randomUUID } from "node:crypto";
+import { randomInt } from "node:crypto";
 import { ForbiddenException, Injectable } from "@nestjs/common";
+import { HostAuth } from "../../common/auth/host-auth";
+import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
 import { SessionNotFoundException } from "../exceptions/not-found";
 import { InvalidSessionCodeException } from "../exceptions/invalid-code";
@@ -21,6 +23,8 @@ export class SessionService {
   constructor(
     private readonly sessionRepository: SessionRepository,
     private readonly eventBus: EventBus,
+    private readonly hostAuth: HostAuth,
+    private readonly participantAuth: ParticipantAuth,
   ) {
     setInterval(() => this.removeExpired(), CLEANUP_INTERVAL);
   }
@@ -31,18 +35,17 @@ export class SessionService {
       code = randomInt(100000, 1000000).toString();
     } while (this.sessionRepository.has(code));
 
-    const hostToken = randomUUID();
     this.sessionRepository.save(code, {
-      hostToken,
       expiresAt: Date.now() + SESSION_TTL,
+      names: new Set(),
     });
     this.eventBus.emit("session.created", code);
-    return { code, hostToken };
+    return { code, hostToken: this.hostAuth.sign(code) };
   }
 
   end(code: string, hostToken: string): void {
     this.assertValidSession(code);
-    if (this.sessionRepository.find(code)?.hostToken !== hostToken)
+    if (!this.hostAuth.isHost(hostToken, code))
       throw new ForbiddenException("Only the host can end the session");
     this.remove(code);
   }
@@ -71,6 +74,19 @@ export class SessionService {
   assertValidSession(code: string): void {
     if (!this.isValidCode(code)) throw new InvalidSessionCodeException();
     if (!this.exists(code)) throw new SessionNotFoundException(code);
+  }
+
+  register(code: string, name: string): { name: string; token: string } {
+    this.assertValidSession(code);
+    const { names } = this.get(code)!;
+    const base = name.trim();
+    let unique = base;
+    for (let i = 2; names.has(unique); i++) unique = `${base} (${i})`;
+    names.add(unique);
+    return {
+      name: unique,
+      token: this.participantAuth.sign({ code, name: unique }),
+    };
   }
 
   join(code: string, name: string): void {

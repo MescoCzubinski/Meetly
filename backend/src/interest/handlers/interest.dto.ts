@@ -1,17 +1,6 @@
-import {
-  ArrayMinSize,
-  IsArray,
-  IsString,
-  Matches,
-  MaxLength,
-} from "class-validator";
+import { ArrayMinSize, IsArray, IsString, MaxLength } from "class-validator";
 
 export class InterestDto {
-  @IsString()
-  @Matches(/\S/, { message: "name must not be blank" })
-  @MaxLength(20)
-  name!: string;
-
   @IsArray()
   @ArrayMinSize(1)
   @IsString({ each: true })

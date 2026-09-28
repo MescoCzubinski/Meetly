@@ -10,6 +10,7 @@ import {
   WsException,
 } from "@nestjs/websockets";
 import type { WebSocket } from "ws";
+import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
 import { MessageDto } from "./message.dto";
 import { MessageService } from "../services/message.service";
@@ -25,6 +26,7 @@ export class MessageGateway
 
   constructor(
     private readonly messageService: MessageService,
+    private readonly participantAuth: ParticipantAuth,
     eventBus: EventBus,
   ) {
     eventBus.on("session.ended", (code) => {
@@ -35,15 +37,14 @@ export class MessageGateway
   }
 
   handleConnection(client: WebSocket, request: IncomingMessage) {
-    const params = new URLSearchParams(request.url?.split("?")[1]);
-    const code = params.get("code") ?? "";
-    const name = params.get("name") ?? "";
-    if (!this.messageService.isActive(code)) {
-      client.close(4404, "Session not found");
+    const participant = this.participantAuth.verify(request);
+    if (!participant) {
+      client.close(4401, "Invalid token");
       return;
     }
-    if (!name) {
-      client.close(4400, "Name is required");
+    const { code, name } = participant;
+    if (!this.messageService.isActive(code)) {
+      client.close(4404, "Session not found");
       return;
     }
 

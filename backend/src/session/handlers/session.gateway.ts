@@ -6,6 +6,7 @@ import {
   WebSocketGateway,
 } from "@nestjs/websockets";
 import type { WebSocket } from "ws";
+import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
 import { SessionService } from "../services/session.service";
 
@@ -20,6 +21,7 @@ export class SessionGateway
 
   constructor(
     private readonly sessionService: SessionService,
+    private readonly participantAuth: ParticipantAuth,
     eventBus: EventBus,
   ) {
     eventBus.on("session.ended", (code) => {
@@ -31,8 +33,15 @@ export class SessionGateway
 
   handleConnection(client: WebSocket, request: IncomingMessage) {
     const params = new URLSearchParams(request.url?.split("?")[1]);
-    const code = params.get("code") ?? "";
-    const name = params.get("name") || undefined;
+    const token = params.get("token");
+    const participant = token !== null
+      ? this.participantAuth.verifyToken(token)
+      : { code: params.get("code") ?? "", name: undefined };
+    if (!participant) {
+      client.close(4401, "Invalid token");
+      return;
+    }
+    const { code, name } = participant;
     try {
       this.sessionService.assertValidSession(code);
     } catch (error) {
