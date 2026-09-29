@@ -1,6 +1,6 @@
-import * as React from "react";
+import * as React from "react"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 function MessageGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -9,7 +9,7 @@ function MessageGroup({ className, ...props }: React.ComponentProps<"div">) {
       className={cn("flex min-w-0 flex-col gap-2", className)}
       {...props}
     />
-  );
+  )
 }
 
 function Message({
@@ -27,7 +27,7 @@ function Message({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function MessageAvatar({ className, ...props }: React.ComponentProps<"div">) {
@@ -35,12 +35,12 @@ function MessageAvatar({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="message-avatar"
       className={cn(
-        "flex size-10 shrink-0 items-center justify-center self-start overflow-hidden rounded-full border-2 border-border bg-background [&_[data-slot=avatar-fallback]]:bg-background [&_[data-slot=avatar]]:size-full [&_[data-slot=avatar]]:outline-0",
+        "flex size-10 shrink-0 items-center justify-center self-start overflow-hidden rounded-full border-2 border-border bg-background [&_[data-slot=avatar]]:size-full [&_[data-slot=avatar]]:outline-0 [&_[data-slot=avatar-fallback]]:bg-background",
         className,
       )}
       {...props}
     />
-  );
+  )
 }
 
 function MessageContent({ className, ...props }: React.ComponentProps<"div">) {
@@ -53,7 +53,7 @@ function MessageContent({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     />
-  );
+  )
 }
 
 function MessageHeader({ className, ...props }: React.ComponentProps<"div">) {
@@ -66,7 +66,7 @@ function MessageHeader({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     />
-  );
+  )
 }
 
 function MessageFooter({ className, ...props }: React.ComponentProps<"div">) {
@@ -79,7 +79,7 @@ function MessageFooter({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     />
-  );
+  )
 }
 
 export {
@@ -89,4 +89,5 @@ export {
   MessageContent,
   MessageFooter,
   MessageHeader,
-};
+}
+

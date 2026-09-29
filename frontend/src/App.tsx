@@ -34,7 +34,8 @@ const initialState = ((): State => {
     return { view: "join", code, guest: true };
   }
   const navigation = performance.getEntriesByType("navigation")[0] as
-    PerformanceNavigationTiming | undefined;
+    | PerformanceNavigationTiming
+    | undefined;
   const isReload = navigation?.type === "reload";
   return isReload && window.history.state?.view
     ? window.history.state
@@ -54,10 +55,11 @@ export default function App() {
 
   useEffect(() => window.history.replaceState(state, ""), [state]);
 
-  const enterRoom = (session: Session) => {
-    setSessions(saveSession(session));
-    setState({ view: "room", ...session });
-  };
+  useEffect(() => {
+    if (state.view !== "room") return;
+    const { code, name, guest, token } = state;
+    setSessions(saveSession({ code, name, guest, token }));
+  }, [state]);
 
   const goHome =
     state.view === "home" ? undefined : () => setState({ view: "home" });
@@ -76,7 +78,7 @@ export default function App() {
           onHost={() => setState({ view: "create" })}
           onJoin={(code) => setState({ view: "join", code, guest: true })}
           sessions={sessions}
-          onResume={enterRoom}
+          onResume={(session) => setState({ view: "room", ...session })}
           onEnded={removeEnded}
         />
       );
@@ -94,7 +96,13 @@ export default function App() {
           code={state.code}
           onCode={setJoinedCode}
           onDone={(name, token) =>
-            enterRoom({ code: state.code, name, guest: state.guest, token })
+            setState({
+              view: "room",
+              code: state.code,
+              name,
+              guest: state.guest,
+              token,
+            })
           }
           onHome={() => setState({ view: "home" })}
         />

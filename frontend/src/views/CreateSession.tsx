@@ -29,7 +29,7 @@ export default function CreateSession({
 
   return (
     <Container>
-      <div className="flex w-full flex-col gap-6">
+      <div className="flex flex-col w-full gap-6">
         <QRCode code={code} />
         <Button
           size="lg"

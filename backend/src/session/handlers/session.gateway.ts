@@ -34,10 +34,9 @@ export class SessionGateway
   handleConnection(client: WebSocket, request: IncomingMessage) {
     const params = new URLSearchParams(request.url?.split("?")[1]);
     const token = params.get("token");
-    const participant =
-      token !== null
-        ? this.participantAuth.verifyToken(token)
-        : { code: params.get("code") ?? "", name: undefined };
+    const participant = token !== null
+      ? this.participantAuth.verifyToken(token)
+      : { code: params.get("code") ?? "", name: undefined };
     if (!participant) {
       client.close(4401, "Invalid token");
       return;
@@ -52,12 +51,22 @@ export class SessionGateway
     }
 
     this.clients.set(client, { code, name });
-    this.sessionService.connect(code, name);
+    this.sessionService.cancelEmptyEnd(code);
+    if (name) this.sessionService.join(code, name);
   }
 
   handleDisconnect(client: WebSocket) {
     const info = this.clients.get(client);
     this.clients.delete(client);
-    if (info) this.sessionService.disconnect(info.code, info.name);
+    if (!info) return;
+    const { code, name } = info;
+
+    const others = [...this.clients.values()].filter(
+      (other) => other.code === code,
+    );
+    if (others.length === 0) this.sessionService.scheduleEmptyEnd(code);
+    if (!name || others.some((other) => other.name === name)) return;
+
+    this.sessionService.leave(code, name);
   }
 }

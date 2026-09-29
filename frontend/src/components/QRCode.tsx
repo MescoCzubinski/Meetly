@@ -31,7 +31,7 @@ export default function QRCode({ code }: { code: string }) {
       >
         {copied ? "Copied!" : code || scrambled.code}
       </Button>
-      <div className="rounded-base border-2 border-border bg-secondary-background p-4 shadow-shadow">
+      <div className="rounded-base border-2 border-border bg-secondary-background shadow-shadow p-4">
         <QRCodeCanvas
           value={code ? inviteLink(code) : scrambled.qr}
           size={1024}

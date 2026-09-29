@@ -19,7 +19,6 @@ const CODE_PATTERN = /^\d{6}$/;
 @Injectable()
 export class SessionService {
   private readonly emptyTimers = new Map<string, NodeJS.Timeout>();
-  private readonly connections = new Map<string, (string | undefined)[]>();
 
   constructor(
     private readonly sessionRepository: SessionRepository,
@@ -51,26 +50,17 @@ export class SessionService {
     this.remove(code);
   }
 
-  connect(code: string, name?: string): void {
-    this.cancelEmptyEnd(code);
-    const names = this.connections.get(code) ?? [];
-    names.push(name);
-    this.connections.set(code, names);
-    if (name) this.eventBus.emit("participant.joined", code, name);
+  scheduleEmptyEnd(code: string): void {
+    if (!this.exists(code) || this.emptyTimers.has(code)) return;
+    this.emptyTimers.set(
+      code,
+      setTimeout(() => this.remove(code), EMPTY_TTL),
+    );
   }
 
-  disconnect(code: string, name?: string): void {
-    const names = this.connections.get(code);
-    const index = names?.indexOf(name) ?? -1;
-    if (!names || index === -1) return;
-    names.splice(index, 1);
-
-    if (names.length === 0) {
-      this.connections.delete(code);
-      this.scheduleEmptyEnd(code);
-    }
-    if (name && !names.includes(name))
-      this.eventBus.emit("participant.left", code, name);
+  cancelEmptyEnd(code: string): void {
+    clearTimeout(this.emptyTimers.get(code));
+    this.emptyTimers.delete(code);
   }
 
   isValidCode(code: string): boolean {
@@ -103,17 +93,12 @@ export class SessionService {
     };
   }
 
-  private scheduleEmptyEnd(code: string): void {
-    if (!this.exists(code) || this.emptyTimers.has(code)) return;
-    this.emptyTimers.set(
-      code,
-      setTimeout(() => this.remove(code), EMPTY_TTL),
-    );
+  join(code: string, name: string): void {
+    this.eventBus.emit("participant.joined", code, name);
   }
 
-  private cancelEmptyEnd(code: string): void {
-    clearTimeout(this.emptyTimers.get(code));
-    this.emptyTimers.delete(code);
+  leave(code: string, name: string): void {
+    this.eventBus.emit("participant.left", code, name);
   }
 
   private removeExpired(): void {

@@ -1,23 +1,23 @@
-"use client";
+"use client"
 
 import {
   MessageScroller as MessageScrollerPrimitive,
   useMessageScroller,
   useMessageScrollerScrollable,
   useMessageScrollerVisibility,
-} from "@shadcn/react/message-scroller";
-import { ArrowDownIcon } from "lucide-react";
+} from "@shadcn/react/message-scroller"
+import { ArrowDownIcon } from "lucide-react"
 
-import * as React from "react";
+import * as React from "react"
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 function MessageScrollerProvider(
   props: React.ComponentProps<typeof MessageScrollerPrimitive.Provider>,
 ) {
-  return <MessageScrollerPrimitive.Provider {...props} />;
+  return <MessageScrollerPrimitive.Provider {...props} />
 }
 
 function MessageScroller({
@@ -33,7 +33,7 @@ function MessageScroller({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function MessageScrollerViewport({
@@ -49,7 +49,7 @@ function MessageScrollerViewport({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function MessageScrollerContent({
@@ -62,7 +62,7 @@ function MessageScrollerContent({
       className={cn("flex h-max min-h-full flex-col gap-6", className)}
       {...props}
     />
-  );
+  )
 }
 
 function MessageScrollerItem({
@@ -80,7 +80,7 @@ function MessageScrollerItem({
       )}
       {...props}
     />
-  );
+  )
 }
 
 function MessageScrollerButton({
@@ -101,7 +101,7 @@ function MessageScrollerButton({
       data-size={size}
       direction={direction}
       className={cn(
-        "inset-s-1/2 absolute size-8 -translate-x-1/2 rounded-full shadow-none transition-[translate,scale,opacity] duration-200 hover:-translate-x-1/2 hover:translate-y-0 data-[active=false]:pointer-events-none data-[active=false]:scale-95 data-[active=false]:opacity-0 data-[active=false]:duration-400 data-[active=false]:ease-[cubic-bezier(0.7,0,0.84,0)] data-[active=true]:translate-y-0 data-[active=true]:scale-100 data-[active=true]:opacity-100 data-[active=true]:ease-[cubic-bezier(0.23,1,0.32,1)] data-[direction=end]:bottom-4 data-[direction=end]:data-[active=false]:translate-y-full data-[direction=start]:top-4 data-[direction=start]:data-[active=false]:-translate-y-full rtl:translate-x-1/2 rtl:hover:translate-x-1/2 data-[direction=start]:[&_svg]:rotate-180",
+        "absolute inset-s-1/2 size-8 rounded-full -translate-x-1/2 transition-[translate,scale,opacity] duration-200 shadow-none hover:-translate-x-1/2 hover:translate-y-0 data-[active=false]:pointer-events-none data-[active=false]:scale-95 data-[active=false]:opacity-0 data-[active=false]:duration-400 data-[active=false]:ease-[cubic-bezier(0.7,0,0.84,0)] data-[active=true]:translate-y-0 data-[active=true]:scale-100 data-[active=true]:opacity-100 data-[active=true]:ease-[cubic-bezier(0.23,1,0.32,1)] data-[direction=end]:bottom-4 data-[direction=end]:data-[active=false]:translate-y-full data-[direction=start]:top-4 data-[direction=start]:data-[active=false]:-translate-y-full rtl:translate-x-1/2 rtl:hover:translate-x-1/2 data-[direction=start]:[&_svg]:rotate-180",
         className,
       )}
       render={render ?? <Button variant={variant} size={size} />}
@@ -116,7 +116,7 @@ function MessageScrollerButton({
         </>
       )}
     </MessageScrollerPrimitive.Button>
-  );
+  )
 }
 
 export {
@@ -129,4 +129,5 @@ export {
   useMessageScroller,
   useMessageScrollerScrollable,
   useMessageScrollerVisibility,
-};
+}
+
