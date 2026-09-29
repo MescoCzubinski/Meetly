@@ -1,7 +1,7 @@
 export default function Container({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex-1 w-full flex justify-center items-center">
-      <div className="w-full max-w-sm flex items-center justify-center cursor-default">
+    <div className="flex w-full flex-1 items-center justify-center">
+      <div className="flex w-full max-w-sm cursor-default items-center justify-center">
         {children}
       </div>
     </div>
