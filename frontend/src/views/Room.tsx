@@ -75,9 +75,7 @@ export default function Room({
               Add an interest
             </Label>
             <InterestInput
-              onAdd={(interest) =>
-                sendInterests([...interests, interest])
-              }
+              onAdd={(interest) => sendInterests([...interests, interest])}
             />
           </CardContent>
         </Card>
