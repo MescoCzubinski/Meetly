@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { EventBus } from "../../common/events/event-bus";
 import {
   type Message,
@@ -7,6 +7,8 @@ import {
 
 @Injectable()
 export class MessageService {
+  private readonly logger = new Logger(MessageService.name);
+
   constructor(
     private readonly messageRepository: MessageRepository,
     eventBus: EventBus,
@@ -33,6 +35,7 @@ export class MessageService {
   send(code: string, from: string, to: string, text: string): Message {
     const message = { from, to, text, sentAt: Date.now() };
     this.messageRepository.save(code, message);
+    this.logger.debug(`Session ${code}: message ${from} -> ${to}`);
     return message;
   }
 

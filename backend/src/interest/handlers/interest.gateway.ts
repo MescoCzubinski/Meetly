@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { UsePipes, ValidationPipe } from "@nestjs/common";
+import { Logger, UsePipes, ValidationPipe } from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
@@ -19,6 +19,7 @@ import { InterestService } from "../services/interest.service";
 export class InterestGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
+  private readonly logger = new Logger(InterestGateway.name);
   private readonly clients = new Map<
     WebSocket,
     { code: string; name: string }
@@ -48,11 +49,13 @@ export class InterestGateway
   handleConnection(client: WebSocket, request: IncomingMessage) {
     const participant = this.participantAuth.verify(request);
     if (!participant) {
+      this.logger.warn("Connection rejected: invalid token");
       client.close(4401, "Invalid token");
       return;
     }
     const { code } = participant;
     if (!this.interestService.isActive(code)) {
+      this.logger.warn(`Connection to ${code} rejected: session not found`);
       client.close(4404, "Session not found");
       return;
     }

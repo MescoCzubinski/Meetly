@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { EventBus } from "../../common/events/event-bus";
 import {
   type Answer,
@@ -11,6 +11,7 @@ const SIMILARITY_THRESHOLD = 0.6;
 
 @Injectable()
 export class InterestService {
+  private readonly logger = new Logger(InterestService.name);
   private readonly removals = new Map<string, Map<string, NodeJS.Timeout>>();
 
   constructor(
@@ -58,6 +59,9 @@ export class InterestService {
 
   async addAnswer(code: string, answer: Answer): Promise<void> {
     this.interestRepository.save(code, answer);
+    this.logger.log(
+      `Session ${code}: ${answer.name} answered with ${answer.interests.length} interests`,
+    );
     await this.embeddingService.embed(answer.interests);
   }
 
@@ -67,6 +71,7 @@ export class InterestService {
     if (!removals || !timer) return false;
     clearTimeout(timer);
     removals.delete(name);
+    this.logger.log(`Session ${code}: ${name} rejoined, answer kept`);
     return true;
   }
 
@@ -79,6 +84,7 @@ export class InterestService {
     const timer = setTimeout(() => {
       removals.delete(name);
       this.interestRepository.delete(code, name);
+      this.logger.log(`Session ${code}: removed inactive answer of ${name}`);
       onRemoved();
     }, INACTIVE_TTL);
     removals.set(name, timer);

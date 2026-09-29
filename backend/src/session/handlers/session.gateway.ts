@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { HttpException } from "@nestjs/common";
+import { HttpException, Logger } from "@nestjs/common";
 import {
   type OnGatewayConnection,
   type OnGatewayDisconnect,
@@ -14,6 +14,7 @@ import { SessionService } from "../services/session.service";
 export class SessionGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
+  private readonly logger = new Logger(SessionGateway.name);
   private readonly clients = new Map<
     WebSocket,
     { code: string; name?: string }
@@ -39,6 +40,7 @@ export class SessionGateway
         ? this.participantAuth.verifyToken(token)
         : { code: params.get("code") ?? "", name: undefined };
     if (!participant) {
+      this.logger.warn("Connection rejected: invalid token");
       client.close(4401, "Invalid token");
       return;
     }
@@ -47,6 +49,7 @@ export class SessionGateway
       this.sessionService.assertValidSession(code);
     } catch (error) {
       if (!(error instanceof HttpException)) throw error;
+      this.logger.warn(`Connection to ${code} rejected: ${error.message}`);
       client.close(4000 + error.getStatus(), error.message);
       return;
     }
