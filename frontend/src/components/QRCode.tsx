@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { copyInviteLink, inviteLink } from "@/utils/copyInviteLink";
+import { copyText, inviteLink } from "@/utils/copyInviteLink";
+import ShareMenu from "@/components/ShareMenu";
 import { Button } from "@/components/ui/button";
 
 const randomCode = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -21,16 +22,25 @@ export default function QRCode({ code }: { code: string }) {
     return () => clearInterval(interval);
   }, [code]);
 
+  const copyCode = () =>
+    copyText(code, () => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1300);
+    });
+
   return (
     <div className="flex w-full flex-col gap-4">
-      <Button
-        aria-label="Copy invitation link"
-        className="h-14 w-full cursor-copy text-2xl font-heading disabled:opacity-100 data-disabled:opacity-100"
-        disabled={!code}
-        onClick={() => copyInviteLink(code, setCopied)}
-      >
-        {copied ? "Copied!" : code || scrambled.code}
-      </Button>
+      <div className="flex gap-4">
+        <Button
+          aria-label="Copy session code"
+          className="h-14 flex-1 cursor-copy text-2xl font-heading disabled:opacity-100 data-disabled:opacity-100"
+          disabled={!code}
+          onClick={copyCode}
+        >
+          {copied ? "Copied!" : code || scrambled.code}
+        </Button>
+        <ShareMenu link={inviteLink(code)} disabled={!code} />
+      </div>
       <div className="rounded-base border-2 border-border bg-secondary-background p-4 shadow-shadow">
         <QRCodeCanvas
           value={code ? inviteLink(code) : scrambled.qr}
