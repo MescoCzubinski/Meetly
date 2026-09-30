@@ -28,4 +28,4 @@ services:
       - /app/node_modules
     ports:
       - "5173:5173"
-    command: npm run dev
+    command: bun run dev

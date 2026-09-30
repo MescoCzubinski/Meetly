@@ -1,18 +1,18 @@
-FROM node:22.19-bullseye AS base
+FROM oven/bun:1.3-slim AS base
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
 FROM base AS dev
 COPY . .
 EXPOSE 5173
-CMD ["npm", "run", "dev"]
+CMD ["bun", "run", "dev"]
 
 FROM base AS build
 ARG VITE_API_URL
 ARG VITE_URL
 COPY . .
-RUN npm run build
+RUN bun run build
 
 FROM node:22.19-alpine AS prod
 RUN npm install -g serve@14
