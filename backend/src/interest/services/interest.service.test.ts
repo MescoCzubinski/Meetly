@@ -57,7 +57,7 @@ describe("InterestService", () => {
     });
 
     test("scales similarity above the threshold", async () => {
-      embedding.similarity = (a, b) => (a === b ? 1 : 0.8);
+      embedding.similarity = (code, a, b) => (a === b ? 1 : 0.8);
       await service.addAnswer(CODE, { name: "Ann", interests: ["chess"] });
       await service.addAnswer(CODE, { name: "Bob", interests: ["go"] });
       const [[a, b, strength]] = service.getLinks(CODE);
@@ -71,6 +71,13 @@ describe("InterestService", () => {
       await service.addAnswer(CODE, { name: "Bob", interests: ["go"] });
       expect(service.getLinks(CODE)).toEqual([]);
     });
+  });
+
+  test("ending the session frees its embedding cache", () => {
+    const deleteSession = mock();
+    embedding.deleteSession = deleteSession;
+    eventBus.emit("session.ended", CODE);
+    expect(deleteSession).toHaveBeenCalledWith(CODE);
   });
 
   describe("leave and join", () => {

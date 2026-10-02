@@ -2,7 +2,9 @@ import { Logger } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { AppModule } from "./app.module";
-import { config } from "./common/config";
+import { validateConfig } from "./common/config";
+
+const config = validateConfig();
 
 const app = await NestFactory.create(AppModule);
 app.enableCors({ origin: config.corsOrigin });

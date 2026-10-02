@@ -88,6 +88,29 @@ describe("sending", () => {
   });
 });
 
+describe("rate limiting", () => {
+  test("rejects messages past the limit", () => {
+    const ann = connect("Ann");
+    for (let i = 0; i < 20; i++)
+      gateway.handleMessage(ann, { to: "Bob", text: "hi" });
+
+    expect(() => gateway.handleMessage(ann, { to: "Bob", text: "hi" })).toThrow(
+      new WsException("Too many messages, slow down"),
+    );
+    expect(service.send).toHaveBeenCalledTimes(20);
+  });
+
+  test("tracks each connection independently", () => {
+    const ann = connect("Ann");
+    const bob = connect("Bob");
+    for (let i = 0; i < 20; i++)
+      gateway.handleMessage(ann, { to: "Bob", text: "hi" });
+
+    gateway.handleMessage(bob, { to: "Ann", text: "hi" });
+    expect(service.send).toHaveBeenCalledTimes(21);
+  });
+});
+
 test("ending a session closes only its sockets", () => {
   const ann = connect("Ann");
   const other = connect("Bob", "654321");

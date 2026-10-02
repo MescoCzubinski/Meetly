@@ -12,8 +12,12 @@ import {
 import type { WebSocket } from "ws";
 import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
+import { RateLimiter } from "../../common/rate-limit";
 import { MessageDto } from "./message.dto";
 import { MessageService } from "../services/message.service";
+
+const RATE_LIMIT = 20;
+const RATE_LIMIT_WINDOW = 10 * 1000; // 10 seconds
 
 @WebSocketGateway({ path: "/messages" })
 export class MessageGateway
@@ -23,6 +27,7 @@ export class MessageGateway
     WebSocket,
     { code: string; name: string }
   >();
+  private readonly limiter = new RateLimiter(RATE_LIMIT, RATE_LIMIT_WINDOW);
 
   constructor(
     private readonly messageService: MessageService,
@@ -59,6 +64,7 @@ export class MessageGateway
 
   handleDisconnect(client: WebSocket) {
     this.clients.delete(client);
+    this.limiter.delete(client);
   }
 
   @SubscribeMessage("message")
@@ -76,6 +82,8 @@ export class MessageGateway
     if (!info || !this.messageService.isActive(info.code)) return;
     if (!this.messageService.isRegistered(info.code, body.to))
       throw new WsException("Unknown recipient");
+    if (!this.limiter.consume(client))
+      throw new WsException("Too many messages, slow down");
 
     const message = this.messageService.send(
       info.code,

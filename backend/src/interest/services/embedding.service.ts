@@ -8,10 +8,13 @@ export class EmbeddingService {
   private readonly extractor = pipeline("feature-extraction", MODEL, {
     dtype: "q8",
   });
-  private readonly vectors = new Map<string, number[]>();
+  private readonly vectors = new Map<string, Map<string, number[]>>();
 
-  async embed(texts: string[]): Promise<void> {
-    const missing = [...new Set(texts)].filter((t) => !this.vectors.has(t));
+  async embed(code: string, texts: string[]): Promise<void> {
+    const cache = this.vectors.get(code) ?? new Map<string, number[]>();
+    this.vectors.set(code, cache);
+
+    const missing = [...new Set(texts)].filter((t) => !cache.has(t));
     if (missing.length === 0) return;
 
     const extractor = await this.extractor;
@@ -20,14 +23,19 @@ export class EmbeddingService {
       normalize: true,
     });
     (output.tolist() as number[][]).forEach((vector, i) =>
-      this.vectors.set(missing[i], vector),
+      cache.set(missing[i], vector),
     );
   }
 
-  similarity(a: string, b: string): number {
-    const x = this.vectors.get(a);
-    const y = this.vectors.get(b);
+  similarity(code: string, a: string, b: string): number {
+    const cache = this.vectors.get(code);
+    const x = cache?.get(a);
+    const y = cache?.get(b);
     if (!x || !y) return 0;
     return x.reduce((sum, v, i) => sum + v * y[i], 0);
+  }
+
+  deleteSession(code: string): void {
+    this.vectors.delete(code);
   }
 }

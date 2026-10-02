@@ -12,8 +12,12 @@ import {
 import type { WebSocket } from "ws";
 import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
+import { RateLimiter } from "../../common/rate-limit";
 import { InterestDto } from "./interest.dto";
 import { InterestService } from "../services/interest.service";
+
+const RATE_LIMIT = 10;
+const RATE_LIMIT_WINDOW = 10 * 1000; // 10 seconds
 
 @WebSocketGateway({ path: "/interests" })
 export class InterestGateway
@@ -24,6 +28,7 @@ export class InterestGateway
     WebSocket,
     { code: string; name: string }
   >();
+  private readonly limiter = new RateLimiter(RATE_LIMIT, RATE_LIMIT_WINDOW);
 
   constructor(
     private readonly interestService: InterestService,
@@ -66,6 +71,7 @@ export class InterestGateway
 
   handleDisconnect(client: WebSocket) {
     this.clients.delete(client);
+    this.limiter.delete(client);
   }
 
   @SubscribeMessage("interest")
@@ -81,6 +87,8 @@ export class InterestGateway
   ) {
     const info = this.clients.get(client);
     if (!info || !this.interestService.isActive(info.code)) return;
+    if (!this.limiter.consume(client))
+      throw new WsException("Too many updates, slow down");
 
     await this.interestService.addAnswer(info.code, {
       name: info.name,

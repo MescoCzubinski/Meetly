@@ -10,6 +10,13 @@ import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
 import { SessionService } from "../services/session.service";
 
+// Anyone who knows a session's code can open a presence connection to it
+// without a participant token (the host, and guests still filling in their
+// profile, don't have one yet). This caps how many such connections a single
+// session can accumulate, so guessing or spamming a code can't open
+// unbounded sockets.
+const MAX_ANONYMOUS_CONNECTIONS = 10;
+
 @WebSocketGateway({ path: "/session" })
 export class SessionGateway
   implements OnGatewayConnection, OnGatewayDisconnect
@@ -19,6 +26,7 @@ export class SessionGateway
     WebSocket,
     { code: string; name?: string }
   >();
+  private readonly anonymousConnections = new Map<string, number>();
 
   constructor(
     private readonly sessionService: SessionService,
@@ -29,6 +37,7 @@ export class SessionGateway
       for (const [client, info] of this.clients) {
         if (info.code === code) client.close(4410, "Session ended");
       }
+      this.anonymousConnections.delete(code);
     });
   }
 
@@ -54,6 +63,18 @@ export class SessionGateway
       return;
     }
 
+    if (!name) {
+      const count = this.anonymousConnections.get(code) ?? 0;
+      if (count >= MAX_ANONYMOUS_CONNECTIONS) {
+        this.logger.warn(
+          `Connection to ${code} rejected: too many anonymous connections`,
+        );
+        client.close(4429, "Too many connections");
+        return;
+      }
+      this.anonymousConnections.set(code, count + 1);
+    }
+
     this.clients.set(client, { code, name });
     this.sessionService.connect(code, name);
   }
@@ -61,6 +82,12 @@ export class SessionGateway
   handleDisconnect(client: WebSocket) {
     const info = this.clients.get(client);
     this.clients.delete(client);
-    if (info) this.sessionService.disconnect(info.code, info.name);
+    if (!info) return;
+    this.sessionService.disconnect(info.code, info.name);
+    if (!info.name) {
+      const count = this.anonymousConnections.get(info.code) ?? 0;
+      if (count <= 1) this.anonymousConnections.delete(info.code);
+      else this.anonymousConnections.set(info.code, count - 1);
+    }
   }
 }

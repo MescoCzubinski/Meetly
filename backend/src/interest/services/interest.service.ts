@@ -27,6 +27,7 @@ export class InterestService {
       this.removals.get(code)?.forEach(clearTimeout);
       this.removals.delete(code);
       interestRepository.deleteSession(code);
+      embeddingService.deleteSession(code);
     });
   }
 
@@ -48,8 +49,8 @@ export class InterestService {
     answers.forEach((a, i) =>
       answers.slice(i + 1).forEach((b) => {
         const strength =
-          (this.match(a.interests, b.interests) +
-            this.match(b.interests, a.interests)) /
+          (this.match(code, a.interests, b.interests) +
+            this.match(code, b.interests, a.interests)) /
           2;
         if (strength > 0) links.push([a.name, b.name, strength]);
       }),
@@ -62,7 +63,7 @@ export class InterestService {
     this.logger.log(
       `Session ${code}: ${answer.name} answered with ${answer.interests.length} interests`,
     );
-    await this.embeddingService.embed(answer.interests);
+    await this.embeddingService.embed(code, answer.interests);
   }
 
   join(code: string, name: string): boolean {
@@ -91,11 +92,11 @@ export class InterestService {
     return true;
   }
 
-  private match(from: string[], to: string[]): number {
+  private match(code: string, from: string[], to: string[]): number {
     return from.reduce((sum, x) => {
       const best = Math.max(
         0,
-        ...to.map((y) => this.embeddingService.similarity(x, y)),
+        ...to.map((y) => this.embeddingService.similarity(code, x, y)),
       );
       return (
         sum +
