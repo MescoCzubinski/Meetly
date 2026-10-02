@@ -2,15 +2,17 @@ import type { EmbeddingService } from "../src/interest/services/embedding.servic
 
 export class FakeEmbeddingService implements Pick<
   EmbeddingService,
-  "embed" | "similarity"
+  "embed" | "similarity" | "deleteSession"
 > {
   embedded: string[][] = [];
 
-  async embed(texts: string[]): Promise<void> {
+  async embed(code: string, texts: string[]): Promise<void> {
     this.embedded.push(texts);
   }
 
-  similarity(a: string, b: string): number {
+  similarity(code: string, a: string, b: string): number {
     return a.toLowerCase() === b.toLowerCase() ? 1 : 0;
   }
+
+  deleteSession(_code: string): void {}
 }

@@ -14,6 +14,9 @@ mock.module("@huggingface/transformers", () => ({ pipeline }));
 
 const { EmbeddingService } = await import("./embedding.service");
 
+const CODE = "111111";
+const OTHER_CODE = "222222";
+
 let service: InstanceType<typeof EmbeddingService>;
 
 beforeEach(() => {
@@ -23,21 +26,21 @@ beforeEach(() => {
 
 describe("EmbeddingService", () => {
   test("computes the dot product of embedded texts", async () => {
-    await service.embed(["chess", "go", "surfing"]);
-    expect(service.similarity("chess", "chess")).toBe(1);
-    expect(service.similarity("chess", "go")).toBeCloseTo(0.6);
-    expect(service.similarity("chess", "surfing")).toBe(0);
+    await service.embed(CODE, ["chess", "go", "surfing"]);
+    expect(service.similarity(CODE, "chess", "chess")).toBe(1);
+    expect(service.similarity(CODE, "chess", "go")).toBeCloseTo(0.6);
+    expect(service.similarity(CODE, "chess", "surfing")).toBe(0);
   });
 
   test("returns 0 for texts that were never embedded", async () => {
-    await service.embed(["chess"]);
-    expect(service.similarity("chess", "go")).toBe(0);
+    await service.embed(CODE, ["chess"]);
+    expect(service.similarity(CODE, "chess", "go")).toBe(0);
   });
 
-  test("embeds only new, distinct texts", async () => {
-    await service.embed(["chess", "chess", "go"]);
-    await service.embed(["go", "surfing"]);
-    await service.embed(["chess"]);
+  test("embeds only new, distinct texts within a session", async () => {
+    await service.embed(CODE, ["chess", "chess", "go"]);
+    await service.embed(CODE, ["go", "surfing"]);
+    await service.embed(CODE, ["chess"]);
     expect(extractor.mock.calls.map(([texts]) => texts)).toEqual([
       ["chess", "go"],
       ["surfing"],
@@ -46,5 +49,13 @@ describe("EmbeddingService", () => {
       pooling: "mean",
       normalize: true,
     });
+  });
+
+  test("keeps each session's vectors separate, and frees them on deleteSession", async () => {
+    await service.embed(CODE, ["chess"]);
+    expect(service.similarity(OTHER_CODE, "chess", "chess")).toBe(0);
+
+    service.deleteSession(CODE);
+    expect(service.similarity(CODE, "chess", "chess")).toBe(0);
   });
 });

@@ -105,6 +105,17 @@ describe("presence", () => {
   });
 });
 
+test("rejects updates past the rate limit", async () => {
+  const ann = connect("Ann");
+  for (let i = 0; i < 10; i++)
+    await gateway.handleAnswer(ann, { interests: ["chess"] });
+
+  await expect(
+    gateway.handleAnswer(ann, { interests: ["chess"] }),
+  ).rejects.toThrow("Too many updates, slow down");
+  expect(service.addAnswer).toHaveBeenCalledTimes(10);
+});
+
 test("ending a session closes only its sockets", () => {
   const ann = connect("Ann");
   const other = connect("Cid", "654321");

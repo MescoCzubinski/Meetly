@@ -88,6 +88,30 @@ describe("sending", () => {
   });
 });
 
+test("rejects messages past the rate limit", () => {
+  const ann = connect("Ann");
+  for (let i = 0; i < 20; i++)
+    gateway.handleMessage(ann, { to: "Bob", text: "hi" });
+
+  expect(() => gateway.handleMessage(ann, { to: "Bob", text: "hi" })).toThrow(
+    new WsException("Too many messages, slow down"),
+  );
+  expect(service.send).toHaveBeenCalledTimes(20);
+});
+
+test("unknown-recipient attempts still count toward the rate limit", () => {
+  service.isRegistered.mockReturnValue(false);
+  const ann = connect("Ann");
+  for (let i = 0; i < 20; i++)
+    expect(() => gateway.handleMessage(ann, { to: "Zed", text: "hi" })).toThrow(
+      new WsException("Unknown recipient"),
+    );
+
+  expect(() => gateway.handleMessage(ann, { to: "Zed", text: "hi" })).toThrow(
+    new WsException("Too many messages, slow down"),
+  );
+});
+
 test("ending a session closes only its sockets", () => {
   const ann = connect("Ann");
   const other = connect("Bob", "654321");

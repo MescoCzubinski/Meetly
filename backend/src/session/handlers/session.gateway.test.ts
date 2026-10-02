@@ -74,6 +74,31 @@ describe("disconnection", () => {
   });
 });
 
+describe("anonymous connections", () => {
+  test("rejects more than the allowed number for one session", () => {
+    for (let i = 0; i < 10; i++)
+      gateway.handleConnection(fakeSocket(), fakeRequest("code=123456"));
+
+    const extra = fakeSocket();
+    gateway.handleConnection(extra, fakeRequest("code=123456"));
+    expect(extra.close).toHaveBeenCalledWith(4429, "Too many connections");
+    expect(service.connect).toHaveBeenCalledTimes(10);
+  });
+
+  test("disconnecting frees a slot for a new anonymous connection", () => {
+    const first = fakeSocket();
+    gateway.handleConnection(first, fakeRequest("code=123456"));
+    for (let i = 0; i < 9; i++)
+      gateway.handleConnection(fakeSocket(), fakeRequest("code=123456"));
+
+    gateway.handleDisconnect(first);
+
+    const freed = fakeSocket();
+    gateway.handleConnection(freed, fakeRequest("code=123456"));
+    expect(freed.close).not.toHaveBeenCalled();
+  });
+});
+
 test("ending a session closes only its sockets", () => {
   const ann = fakeSocket();
   const other = fakeSocket();
