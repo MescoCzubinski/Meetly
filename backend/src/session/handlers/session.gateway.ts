@@ -10,11 +10,6 @@ import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
 import { SessionService } from "../services/session.service";
 
-// Anyone who knows a session's code can open a presence connection to it
-// without a participant token (the host, and guests still filling in their
-// profile, don't have one yet). This caps how many such connections a single
-// session can accumulate, so guessing or spamming a code can't open
-// unbounded sockets.
 const MAX_ANONYMOUS_CONNECTIONS = 10;
 
 @WebSocketGateway({ path: "/session" })
