@@ -11,7 +11,10 @@ export function validateConfig(): {
   corsOrigin: string;
   jwtSecret: string;
 } {
-  const missing = REQUIRED_VARS.filter((name) => !process.env[name]);
+  const missing = REQUIRED_VARS.filter((name) => {
+    const value = process.env[name];
+    return name === "JWT_SECRET" ? !value?.trim() : !value;
+  });
   if (missing.length > 0)
     throw new Error(
       `Missing required environment variable(s): ${missing.join(", ")}`,
