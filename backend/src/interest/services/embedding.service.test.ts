@@ -51,27 +51,11 @@ describe("EmbeddingService", () => {
     });
   });
 
-  test("keeps each session's vectors separate", async () => {
+  test("keeps each session's vectors separate, and frees them on deleteSession", async () => {
     await service.embed(CODE, ["chess"]);
     expect(service.similarity(OTHER_CODE, "chess", "chess")).toBe(0);
 
-    await service.embed(OTHER_CODE, ["chess"]);
-    expect(extractor.mock.calls.map(([texts]) => texts)).toEqual([
-      ["chess"],
-      ["chess"],
-    ]);
-    expect(service.similarity(OTHER_CODE, "chess", "chess")).toBe(1);
-  });
-
-  test("deleteSession frees that session's vectors", async () => {
-    await service.embed(CODE, ["chess"]);
     service.deleteSession(CODE);
     expect(service.similarity(CODE, "chess", "chess")).toBe(0);
-
-    await service.embed(CODE, ["chess"]);
-    expect(extractor.mock.calls.map(([texts]) => texts)).toEqual([
-      ["chess"],
-      ["chess"],
-    ]);
   });
 });

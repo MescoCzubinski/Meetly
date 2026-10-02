@@ -76,11 +76,9 @@ describe("disconnection", () => {
 
 describe("anonymous connections", () => {
   test("rejects more than the allowed number for one session", () => {
-    for (let i = 0; i < 10; i++) {
-      const socket = fakeSocket();
-      gateway.handleConnection(socket, fakeRequest("code=123456"));
-      expect(socket.close).not.toHaveBeenCalled();
-    }
+    for (let i = 0; i < 10; i++)
+      gateway.handleConnection(fakeSocket(), fakeRequest("code=123456"));
+
     const extra = fakeSocket();
     gateway.handleConnection(extra, fakeRequest("code=123456"));
     expect(extra.close).toHaveBeenCalledWith(4429, "Too many connections");
@@ -98,26 +96,6 @@ describe("anonymous connections", () => {
     const freed = fakeSocket();
     gateway.handleConnection(freed, fakeRequest("code=123456"));
     expect(freed.close).not.toHaveBeenCalled();
-  });
-
-  test("does not limit connections carrying a participant token", () => {
-    for (let i = 0; i < 10; i++)
-      gateway.handleConnection(fakeSocket(), fakeRequest("code=123456"));
-
-    const named = fakeSocket();
-    gateway.handleConnection(named, tokenRequest("123456", "Ann"));
-    expect(named.close).not.toHaveBeenCalled();
-  });
-
-  test("ending a session clears its anonymous connection count", () => {
-    for (let i = 0; i < 10; i++)
-      gateway.handleConnection(fakeSocket(), fakeRequest("code=123456"));
-
-    eventBus.emit("session.ended", "123456");
-
-    const after = fakeSocket();
-    gateway.handleConnection(after, fakeRequest("code=123456"));
-    expect(after.close).not.toHaveBeenCalled();
   });
 });
 

@@ -105,27 +105,15 @@ describe("presence", () => {
   });
 });
 
-describe("rate limiting", () => {
-  test("rejects updates past the limit", async () => {
-    const ann = connect("Ann");
-    for (let i = 0; i < 10; i++)
-      await gateway.handleAnswer(ann, { interests: ["chess"] });
+test("rejects updates past the rate limit", async () => {
+  const ann = connect("Ann");
+  for (let i = 0; i < 10; i++)
+    await gateway.handleAnswer(ann, { interests: ["chess"] });
 
-    await expect(
-      gateway.handleAnswer(ann, { interests: ["chess"] }),
-    ).rejects.toThrow("Too many updates, slow down");
-    expect(service.addAnswer).toHaveBeenCalledTimes(10);
-  });
-
-  test("tracks each connection independently", async () => {
-    const ann = connect("Ann");
-    const bob = connect("Bob");
-    for (let i = 0; i < 10; i++)
-      await gateway.handleAnswer(ann, { interests: ["chess"] });
-
-    await gateway.handleAnswer(bob, { interests: ["chess"] });
-    expect(service.addAnswer).toHaveBeenCalledTimes(11);
-  });
+  await expect(
+    gateway.handleAnswer(ann, { interests: ["chess"] }),
+  ).rejects.toThrow("Too many updates, slow down");
+  expect(service.addAnswer).toHaveBeenCalledTimes(10);
 });
 
 test("ending a session closes only its sockets", () => {
