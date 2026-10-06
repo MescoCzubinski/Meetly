@@ -33,7 +33,7 @@ export default function CreateSession({
         <QRCode code={code} />
         <Button
           size="lg"
-          className="h-12 w-full text-2xl font-heading disabled:opacity-100 data-disabled:opacity-100"
+          className="h-12 w-full text-2xl font-heading"
           disabled={!code}
           onClick={() => onDone(code)}
         >
