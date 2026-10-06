@@ -23,7 +23,6 @@ jobs:
           push: true
           tags: |
             ghcr.io/mescoczubinski/meetly-backend:${{ github.ref_name }}
-            ghcr.io/mescoczubinski/meetly-backend:latest
       - uses: docker/build-push-action@v6
         with:
           context: ./frontend
@@ -34,4 +33,3 @@ jobs:
             VITE_URL=${{ vars.VITE_URL }}
           tags: |
             ghcr.io/mescoczubinski/meetly-frontend:${{ github.ref_name }}
-            ghcr.io/mescoczubinski/meetly-frontend:latest
