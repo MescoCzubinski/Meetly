@@ -70,7 +70,7 @@ cp .env.example .env
 | -------------- | -------- | ---------------------------------------------- |
 | `PORT`         | backend  | Port of the API (default `8080`).              |
 | `CORS_ORIGIN`  | backend  | URL of the frontend allowed to call the API.   |
-| `VITE_API_URL` | frontend | Origin of the API (`/api` is appended).                              |
+| `VITE_API_URL` | frontend | Origin of the API (`/api` is appended).        |
 | `VITE_URL`     | frontend | URL of the frontend, used in invitation links. |
 
 ### Docker Compose
