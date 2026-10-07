@@ -19,7 +19,7 @@ import { MessageService } from "../services/message.service";
 const RATE_LIMIT = 20;
 const RATE_LIMIT_WINDOW = 10 * 1000; // 10 seconds
 
-@WebSocketGateway({ path: "/messages" })
+@WebSocketGateway({ path: "/api/messages" })
 export class MessageGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {

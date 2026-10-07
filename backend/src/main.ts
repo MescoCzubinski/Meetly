@@ -7,6 +7,7 @@ import { validateConfig } from "./common/config";
 const config = validateConfig();
 
 const app = await NestFactory.create(AppModule);
+app.setGlobalPrefix("api");
 app.enableCors({ origin: config.corsOrigin });
 app.useWebSocketAdapter(new WsAdapter(app));
 await app.listen(config.port);
