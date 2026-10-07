@@ -27,6 +27,7 @@ beforeAll(async () => {
     .useValue(new JwtService({ secret: "secret" }))
     .compile();
   app = moduleRef.createNestApplication({ logger: false });
+  app.setGlobalPrefix("api");
   app.useWebSocketAdapter(new WsAdapter(app));
   await app.listen(0);
   const { port } = app.getHttpServer().address() as AddressInfo;
@@ -42,7 +43,7 @@ afterAll(() => {
 });
 
 function http(method: string, path: string, init: RequestInit = {}) {
-  return fetch(`http://${base}${path}`, {
+  return fetch(`http://${base}/api${path}`, {
     method,
     ...init,
     headers: { "content-type": "application/json", ...init.headers },
@@ -64,7 +65,7 @@ async function register(code: string, name: string) {
 }
 
 function connect(path: string, query: string) {
-  const socket = new WebSocket(`ws://${base}${path}?${query}`);
+  const socket = new WebSocket(`ws://${base}/api${path}?${query}`);
   sockets.push(socket);
   const inbox: unknown[] = [];
   const waiting: ((message: any) => void)[] = [];

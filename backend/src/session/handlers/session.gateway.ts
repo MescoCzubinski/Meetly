@@ -12,7 +12,7 @@ import { SessionService } from "../services/session.service";
 
 const MAX_ANONYMOUS_CONNECTIONS = 10;
 
-@WebSocketGateway({ path: "/session" })
+@WebSocketGateway({ path: "/api/session" })
 export class SessionGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {

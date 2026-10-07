@@ -42,14 +42,14 @@ Sessions are kept in memory on the backend, so they are lost when it restarts.
   - `src/common/config.ts` – port and allowed CORS origin, read from the environment.
   - `src/common/events/` – event bus the slices use to talk to each other (`session.created`, `session.ended`, `participant.joined`, `participant.left`).
   - `src/session/handlers/session.controller.ts` – REST endpoints for creating, checking and ending sessions.
-  - `src/session/handlers/session.gateway.ts` – WebSocket gateway at `/session`: who is connected.
+  - `src/session/handlers/session.gateway.ts` – WebSocket gateway at `/api/session`: who is connected.
   - `src/session/services/session.service.ts` – sessions and their timeouts.
-  - `src/interest/handlers/interest.gateway.ts` – WebSocket gateway at `/interests`: answers and broadcasting the graph.
+  - `src/interest/handlers/interest.gateway.ts` – WebSocket gateway at `/api/interests`: answers and broadcasting the graph.
   - `src/interest/services/interest.service.ts` – answers, inactive people and the link strengths.
   - `src/interest/services/embedding.service.ts` – the embedding model and similarity.
-  - `src/message/` – direct messages between people in a session, WebSocket gateway at `/messages`.
+  - `src/message/` – direct messages between people in a session, WebSocket gateway at `/api/messages`.
   - `src/*/repositories/` – each slice's storage (in memory for now).
-  - `src/health/` – `GET /health`.
+  - `src/health/` – `GET /api/health`.
 - `frontend/` – React app built with Vite and Tailwind CSS.
   - `src/App.tsx` – the views and navigation between them.
   - `src/views/` – `Home`, `Host`, `Guest` and `Answers` (the graph).
@@ -70,7 +70,7 @@ cp .env.example .env
 | -------------- | -------- | ---------------------------------------------- |
 | `PORT`         | backend  | Port of the API (default `8080`).              |
 | `CORS_ORIGIN`  | backend  | URL of the frontend allowed to call the API.   |
-| `VITE_API_URL` | frontend | URL of the API.                                |
+| `VITE_API_URL` | frontend | Origin of the API (`/api` is appended).        |
 | `VITE_URL`     | frontend | URL of the frontend, used in invitation links. |
 
 ### Docker Compose

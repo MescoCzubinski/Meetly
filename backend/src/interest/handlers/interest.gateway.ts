@@ -19,7 +19,7 @@ import { InterestService } from "../services/interest.service";
 const RATE_LIMIT = 10;
 const RATE_LIMIT_WINDOW = 10 * 1000; // 10 seconds
 
-@WebSocketGateway({ path: "/interests" })
+@WebSocketGateway({ path: "/api/interests" })
 export class InterestGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
