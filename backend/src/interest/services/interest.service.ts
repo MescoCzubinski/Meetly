@@ -22,6 +22,7 @@ export class InterestService {
     eventBus.on("session.created", (code) => {
       interestRepository.createSession(code);
       this.removals.set(code, new Map());
+      embeddingService.createSession(code);
     });
     eventBus.on("session.ended", (code) => {
       this.removals.get(code)?.forEach(clearTimeout);
