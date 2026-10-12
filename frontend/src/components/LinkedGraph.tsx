@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { simulateForces, type Body } from "@/utils/simulateForces";
 
+const SETTLED = 0.05;
+
 export default function LinkedGraph({
   answers,
   links,
@@ -26,12 +28,15 @@ export default function LinkedGraph({
     startY: number;
   } | null>(null);
 
+  const wake = useRef(() => {});
+
   const moveDragged = (e: React.PointerEvent) => {
     const body = drag.current && bodies.current.get(drag.current.name);
     const rect = containerRef.current?.getBoundingClientRect();
     if (!drag.current || !body || !rect) return;
     body.x = e.clientX - rect.left - drag.current.dx;
     body.y = e.clientY - rect.top - drag.current.dy;
+    wake.current();
   };
 
   const linksRef = useRef(links);
@@ -40,9 +45,9 @@ export default function LinkedGraph({
   }, [links]);
 
   useEffect(() => {
-    let frame: number;
+    let frame = 0;
     const tick = () => {
-      frame = requestAnimationFrame(tick);
+      frame = 0;
       const container = containerRef.current;
       if (!container) return;
       const w = container.clientWidth;
@@ -67,15 +72,34 @@ export default function LinkedGraph({
         }),
       );
 
-      simulateForces(nodes, linksRef.current, w, h, drag.current?.name);
+      const moved = simulateForces(
+        nodes,
+        linksRef.current,
+        w,
+        h,
+        drag.current?.name,
+      );
 
       for (const { body, card, width, height } of nodes.values()) {
         card.style.transform = `translate(${body.x - width / 2}px, ${body.y - height / 2}px)`;
       }
+
+      if (moved > SETTLED || drag.current) wake.current();
     };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    wake.current = () => {
+      if (!frame) frame = requestAnimationFrame(tick);
+    };
+    wake.current();
+
+    const observer = new ResizeObserver(() => wake.current());
+    observer.observe(containerRef.current!);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
   }, []);
+
+  useEffect(() => wake.current(), [answers, links]);
 
   return (
     <div ref={containerRef} className="relative flex-1 overflow-hidden">
@@ -101,6 +125,7 @@ export default function LinkedGraph({
               startX: e.clientX,
               startY: e.clientY,
             };
+            wake.current();
           }}
           onPointerMove={moveDragged}
           onPointerUp={(e) => {
