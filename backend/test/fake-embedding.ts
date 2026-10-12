@@ -2,7 +2,7 @@ import type { EmbeddingService } from "../src/interest/services/embedding.servic
 
 export class FakeEmbeddingService implements Pick<
   EmbeddingService,
-  "embed" | "similarity" | "deleteSession"
+  "embed" | "similarity" | "createSession" | "deleteSession"
 > {
   embedded: string[][] = [];
 
@@ -13,6 +13,8 @@ export class FakeEmbeddingService implements Pick<
   similarity(code: string, a: string, b: string): number {
     return a.toLowerCase() === b.toLowerCase() ? 1 : 0;
   }
+
+  createSession(_code: string): void {}
 
   deleteSession(_code: string): void {}
 }

@@ -19,7 +19,7 @@ export function simulateForces(
   width: number,
   height: number,
   pinned?: string,
-) {
+): number {
   const list = [...nodes.values()];
 
   for (let i = 0; i < list.length; i++) {
@@ -56,8 +56,10 @@ export function simulateForces(
     b.body.vy -= (dy / dist) * f;
   }
 
+  let moved = 0;
   for (const [name, node] of nodes) {
     const { body } = node;
+    const { x, y } = body;
     if (pinned === name) body.vx = body.vy = 0;
     body.vx += (width / 2 - body.x) * GRAVITY;
     body.vy += (height / 2 - body.y) * GRAVITY;
@@ -71,5 +73,7 @@ export function simulateForces(
       Math.max(body.y + body.vy, node.height / 2),
       height - node.height / 2,
     );
+    moved = Math.max(moved, Math.hypot(body.x - x, body.y - y));
   }
+  return moved;
 }

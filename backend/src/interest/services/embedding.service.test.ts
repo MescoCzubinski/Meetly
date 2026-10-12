@@ -9,7 +9,8 @@ const VECTORS: Record<string, number[]> = {
 const extractor = mock(async (texts: string[]) => ({
   tolist: () => texts.map((t) => VECTORS[t]),
 }));
-const pipeline = mock(async () => extractor);
+const dispose = mock(async () => {});
+const pipeline = mock(async () => Object.assign(extractor, { dispose }));
 mock.module("@huggingface/transformers", () => ({ pipeline }));
 
 const { EmbeddingService } = await import("./embedding.service");
@@ -21,6 +22,8 @@ let service: InstanceType<typeof EmbeddingService>;
 
 beforeEach(() => {
   extractor.mockClear();
+  pipeline.mockClear();
+  dispose.mockClear();
   service = new EmbeddingService();
 });
 
@@ -57,5 +60,41 @@ describe("EmbeddingService", () => {
 
     service.deleteSession(CODE);
     expect(service.similarity(CODE, "chess", "chess")).toBe(0);
+  });
+
+  test("loads the model on session creation and disposes it after the last session ends", async () => {
+    service.createSession(CODE);
+    service.createSession(OTHER_CODE);
+    expect(pipeline).toHaveBeenCalledTimes(1);
+
+    service.deleteSession(CODE);
+    await Promise.resolve();
+    expect(dispose).not.toHaveBeenCalled();
+
+    service.deleteSession(OTHER_CODE);
+    await new Promise((r) => setTimeout(r));
+    expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
+  test("retries loading the model after a failed load", async () => {
+    pipeline.mockImplementationOnce(async () => {
+      throw new Error("offline");
+    });
+    service.createSession(CODE);
+    await new Promise((r) => setTimeout(r));
+
+    await service.embed(CODE, ["chess"]);
+    expect(pipeline).toHaveBeenCalledTimes(2);
+    expect(service.similarity(CODE, "chess", "chess")).toBe(1);
+  });
+
+  test("does not dispose a model that failed to load", async () => {
+    pipeline.mockImplementationOnce(async () => {
+      throw new Error("offline");
+    });
+    service.createSession(CODE);
+    service.deleteSession(CODE);
+    await new Promise((r) => setTimeout(r));
+    expect(dispose).not.toHaveBeenCalled();
   });
 });
