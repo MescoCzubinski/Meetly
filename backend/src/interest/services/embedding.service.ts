@@ -2,12 +2,13 @@ import {
   type FeatureExtractionPipeline,
   pipeline,
 } from "@huggingface/transformers";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 
 const MODEL = "Xenova/paraphrase-multilingual-MiniLM-L12-v2";
 
 @Injectable()
 export class EmbeddingService {
+  private readonly logger = new Logger(EmbeddingService.name);
   private extractor?: Promise<FeatureExtractionPipeline>;
   private readonly vectors = new Map<string, Map<string, number[]>>();
 
@@ -46,12 +47,21 @@ export class EmbeddingService {
     if (this.vectors.size > 0) return;
     const extractor = this.extractor;
     this.extractor = undefined;
-    void extractor?.then((e) => e.dispose());
+    void extractor?.then(
+      (e) => e.dispose(),
+      () => {},
+    );
   }
 
   private load(): Promise<FeatureExtractionPipeline> {
-    return (this.extractor ??= pipeline("feature-extraction", MODEL, {
-      dtype: "q8",
-    }));
+    if (!this.extractor) {
+      const loading = pipeline("feature-extraction", MODEL, { dtype: "q8" });
+      loading.catch((error) => {
+        this.logger.error("Failed to load the embedding model", error);
+        if (this.extractor === loading) this.extractor = undefined;
+      });
+      this.extractor = loading;
+    }
+    return this.extractor;
   }
 }

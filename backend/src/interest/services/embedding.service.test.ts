@@ -75,4 +75,26 @@ describe("EmbeddingService", () => {
     await new Promise((r) => setTimeout(r));
     expect(dispose).toHaveBeenCalledTimes(1);
   });
+
+  test("retries loading the model after a failed load", async () => {
+    pipeline.mockImplementationOnce(async () => {
+      throw new Error("offline");
+    });
+    service.createSession(CODE);
+    await new Promise((r) => setTimeout(r));
+
+    await service.embed(CODE, ["chess"]);
+    expect(pipeline).toHaveBeenCalledTimes(2);
+    expect(service.similarity(CODE, "chess", "chess")).toBe(1);
+  });
+
+  test("does not dispose a model that failed to load", async () => {
+    pipeline.mockImplementationOnce(async () => {
+      throw new Error("offline");
+    });
+    service.createSession(CODE);
+    service.deleteSession(CODE);
+    await new Promise((r) => setTimeout(r));
+    expect(dispose).not.toHaveBeenCalled();
+  });
 });
