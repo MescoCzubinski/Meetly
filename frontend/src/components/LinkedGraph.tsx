@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { Answer, Link } from "@/hooks/useWebSocket";
+import type { Answer, Link } from "@/hooks/useInterests";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { simulateForces, type Body } from "@/utils/simulateForces";

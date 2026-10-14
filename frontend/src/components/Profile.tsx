@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "@/components/ui/toast";
-import { useWebSocket } from "@/hooks/useWebSocket";
+import { useInterests } from "@/hooks/useInterests";
+import { useSession } from "@/hooks/useSession";
 import { joinSession } from "@/lib/api";
 import Name from "@/components/Name";
 import InterestInput from "@/components/InterestInput";
@@ -37,7 +38,8 @@ export default function Profile({
     token: string;
   }>();
   const [interests, setInterests] = useState<string[]>([]);
-  const { ready, sendInterests } = useWebSocket(code, participant?.token, true);
+  useSession(code, participant?.token, true);
+  const { ready, sendInterests } = useInterests(participant?.token);
 
   const [badgesHeight, setBadgesHeight] = useState<number>();
   const measureBadges = useCallback((el: HTMLDivElement | null) => {

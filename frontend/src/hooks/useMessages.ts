@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { WS_URL } from "@/lib/config";
-import { closeSocket } from "@/hooks/useWebSocket";
+import { closeSocket } from "@/lib/socket";
 
 export type ChatMessage = {
   from: string;

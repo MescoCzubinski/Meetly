@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { MessageCircle, X } from "lucide-react";
 import { useMessages } from "@/hooks/useMessages";
-import { useWebSocket } from "@/hooks/useWebSocket";
+import { useInterests } from "@/hooks/useInterests";
+import { useSession } from "@/hooks/useSession";
 import InterestInput from "@/components/InterestInput";
 import LinkedGraph from "@/components/LinkedGraph";
 import ChatModal from "@/components/modals/ChatModal";
@@ -22,7 +23,14 @@ export default function Room({
   token: string;
   onHome: () => void;
 }) {
-  const { answers, links, ended, sendInterests } = useWebSocket(code, token);
+  const { ended: sessionEnded } = useSession(code, token);
+  const {
+    answers,
+    links,
+    ended: interestsEnded,
+    sendInterests,
+  } = useInterests(token);
+  const ended = sessionEnded || interestsEnded;
   const own = answers.find((res) => res.name === name);
   const interests = own?.interests ?? [];
   const { messages, sendMessage } = useMessages(token);
