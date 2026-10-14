@@ -2,11 +2,7 @@ import { useState, useEffect } from "react";
 import { WS_URL } from "@/lib/config";
 import { closeSocket, isEnded } from "@/lib/socket";
 
-export const useSession = (
-  code: string,
-  token?: string,
-  anonymous = false,
-) => {
+export const useSession = (code: string, token?: string, anonymous = false) => {
   const [ended, setEnded] = useState(false);
   const presenceToken = anonymous ? undefined : token;
 
