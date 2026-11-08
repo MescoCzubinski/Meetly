@@ -8,7 +8,6 @@ import {
 } from "bun:test";
 import type { AddressInfo } from "node:net";
 import type { INestApplication } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
 import { AppModule } from "../src/app.module";
@@ -23,8 +22,6 @@ beforeAll(async () => {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(EmbeddingService)
     .useValue(new FakeEmbeddingService())
-    .overrideProvider(JwtService)
-    .useValue(new JwtService({ secret: "secret" }))
     .compile();
   app = moduleRef.createNestApplication({ logger: false });
   app.setGlobalPrefix("api");
