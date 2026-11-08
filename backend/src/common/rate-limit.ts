@@ -1,12 +1,12 @@
 export class RateLimiter {
-  private readonly hits = new Map<unknown, number[]>();
+  private readonly hits = new WeakMap<object, number[]>();
 
   constructor(
     private readonly limit: number,
     private readonly windowMs: number,
   ) {}
 
-  consume(key: unknown): boolean {
+  consume(key: object): boolean {
     const now = Date.now();
     const recent = (this.hits.get(key) ?? []).filter(
       (hitAt) => now - hitAt < this.windowMs,
@@ -18,9 +18,5 @@ export class RateLimiter {
     recent.push(now);
     this.hits.set(key, recent);
     return true;
-  }
-
-  delete(key: unknown): void {
-    this.hits.delete(key);
   }
 }

@@ -383,6 +383,20 @@ describe("messages", () => {
       ],
     });
   });
+
+  test("rejected attempts count toward the rate limit", async () => {
+    const { code } = await createSession();
+    const ann = await register(code, "Ann");
+    const ws = connect("/messages", `token=${ann.token}`);
+    await ws.next();
+
+    for (let i = 0; i < 20; i++) {
+      ws.send("message", { to: "Zed", text: "hi" });
+      expect((await ws.next()).data.message).toBe("Unknown recipient");
+    }
+    ws.send("message", { to: "Zed", text: "hi" });
+    expect((await ws.next()).data.message).toBe("Too many messages, slow down");
+  });
 });
 
 describe("ending a session", () => {

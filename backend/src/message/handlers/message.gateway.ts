@@ -7,13 +7,12 @@ import {
   type OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
-  WsException,
 } from "@nestjs/websockets";
 import type { WebSocket } from "ws";
 import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
 import { WsExceptionFilter } from "../../common/exceptions/ws-exception.filter";
-import { RateLimiter } from "../../common/rate-limit";
+import { RateLimit } from "../../common/rate-limit.guard";
 import { MessageDto } from "./message.dto";
 import { MessageService } from "../services/message.service";
 
@@ -30,7 +29,6 @@ export class MessageGateway
     WebSocket,
     { code: string; name: string }
   >();
-  private readonly limiter = new RateLimiter(RATE_LIMIT, RATE_LIMIT_WINDOW);
 
   constructor(
     private readonly messageService: MessageService,
@@ -69,18 +67,20 @@ export class MessageGateway
 
   handleDisconnect(client: WebSocket) {
     this.clients.delete(client);
-    this.limiter.delete(client);
   }
 
   @SubscribeMessage("message")
+  @RateLimit({
+    limit: RATE_LIMIT,
+    windowMs: RATE_LIMIT_WINDOW,
+    message: "Too many messages, slow down",
+  })
   handleMessage(
     @ConnectedSocket() client: WebSocket,
     @MessageBody() body: MessageDto,
   ) {
     const info = this.clients.get(client);
     if (!info || !this.messageService.isActive(info.code)) return;
-    if (!this.limiter.consume(client))
-      throw new WsException("Too many messages, slow down");
 
     const message = this.messageService.send(
       info.code,

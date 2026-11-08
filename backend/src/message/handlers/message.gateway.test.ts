@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { WsException } from "@nestjs/websockets";
 import {
   fakeRequest,
   fakeSocket,
@@ -8,7 +7,6 @@ import {
   tokenRequest,
 } from "../../../test/fakes";
 import { EventBus } from "../../common/events/event-bus";
-import { UnknownRecipientException } from "../exceptions/unknown-recipient";
 import type { MessageService } from "../services/message.service";
 import { MessageGateway } from "./message.gateway";
 
@@ -72,32 +70,6 @@ test("delivers to every socket of sender and recipient in the session", () => {
   for (const socket of [ann, annTab, bob])
     expect(sent(socket).at(-1)).toEqual({ event: "message", data: message });
   for (const socket of [cid, otherBob]) expect(sent(socket)).toHaveLength(1);
-});
-
-test("rejects messages past the rate limit", () => {
-  const ann = connect("Ann");
-  for (let i = 0; i < 20; i++)
-    gateway.handleMessage(ann, { to: "Bob", text: "hi" });
-
-  expect(() => gateway.handleMessage(ann, { to: "Bob", text: "hi" })).toThrow(
-    new WsException("Too many messages, slow down"),
-  );
-  expect(service.send).toHaveBeenCalledTimes(20);
-});
-
-test("unknown-recipient attempts still count toward the rate limit", () => {
-  service.send.mockImplementation(() => {
-    throw new UnknownRecipientException();
-  });
-  const ann = connect("Ann");
-  for (let i = 0; i < 20; i++)
-    expect(() => gateway.handleMessage(ann, { to: "Zed", text: "hi" })).toThrow(
-      UnknownRecipientException,
-    );
-
-  expect(() => gateway.handleMessage(ann, { to: "Zed", text: "hi" })).toThrow(
-    new WsException("Too many messages, slow down"),
-  );
 });
 
 test("ending a session closes only its sockets", () => {
