@@ -4,12 +4,12 @@ import { toast } from "@/components/ui/toast";
 import { sessionExists } from "@/lib/api";
 import { isValidCode } from "@/utils/isValidCode";
 import type { Session } from "@/lib/storage";
-import Container from "@/components/Container";
-import InputWithButton from "@/components/InputWithButton";
+import { Container } from "@/components/Container";
+import { InputWithButton } from "@/components/InputWithButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function Home({
+export const Home = ({
   onHost,
   onJoin,
   sessions,
@@ -21,7 +21,7 @@ export default function Home({
   sessions: Session[];
   onResume: (session: Session) => void;
   onEnded: (codes: string[]) => void;
-}) {
+}) => {
   const [code, setCode] = useState<string>("");
   const [active, setActive] = useState<Session[]>([]);
 
@@ -109,4 +109,4 @@ export default function Home({
       </div>
     </Container>
   );
-}
+};

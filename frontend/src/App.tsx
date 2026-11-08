@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Info } from "lucide-react";
-import Home from "@/views/Home";
-import JoinSession from "@/views/JoinSession";
-import CreateSession from "@/views/CreateSession";
-import Room from "@/views/Room";
-import Background from "@/components/Background";
-import Header from "@/components/Header";
-import AboutModal from "@/components/modals/AboutModal";
+import { Home } from "@/views/Home";
+import { JoinSession } from "@/views/JoinSession";
+import { CreateSession } from "@/views/CreateSession";
+import { Room } from "@/views/Room";
+import { Background } from "@/components/Background";
+import { Header } from "@/components/Header";
+import { AboutModal } from "@/components/modals/AboutModal";
 import { Button } from "@/components/ui/button";
 import {
   loadSessions,
@@ -41,7 +41,7 @@ const initialState = ((): State => {
     : { view: "home" };
 })();
 
-export default function App() {
+export const App = () => {
   const [state, setState] = useState<State>(initialState);
 
   const [sessions, setSessions] = useState<Session[]>(loadSessions);
@@ -137,4 +137,4 @@ export default function App() {
       <AboutModal open={showingAbout} onOpenChange={setShowingAbout} />
     </>
   );
-}
+};

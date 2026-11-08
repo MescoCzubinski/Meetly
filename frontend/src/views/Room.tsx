@@ -3,16 +3,16 @@ import { MessageCircle, X } from "lucide-react";
 import { useMessages } from "@/hooks/useMessages";
 import { useInterests } from "@/hooks/useInterests";
 import { useSession } from "@/hooks/useSession";
-import InterestInput from "@/components/InterestInput";
-import LinkedGraph from "@/components/LinkedGraph";
-import ChatModal from "@/components/modals/ChatModal";
-import Modal from "@/components/modals/Modal";
+import { InterestInput } from "@/components/InterestInput";
+import { LinkedGraph } from "@/components/LinkedGraph";
+import { ChatModal } from "@/components/modals/ChatModal";
+import { Modal } from "@/components/modals/Modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
-export default function Room({
+export const Room = ({
   code,
   name,
   token,
@@ -22,7 +22,7 @@ export default function Room({
   name: string;
   token: string;
   onHome: () => void;
-}) {
+}) => {
   const { ended: sessionEnded } = useSession(code, token);
   const {
     answers,
@@ -112,4 +112,4 @@ export default function Room({
       </Modal>
     </div>
   );
-}
+};

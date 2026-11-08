@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { sessionExists } from "@/lib/api";
-import Container from "@/components/Container";
-import Profile from "@/components/Profile";
+import { Container } from "@/components/Container";
+import { Profile } from "@/components/Profile";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function JoinSession({
+export const JoinSession = ({
   code,
   onCode,
   onDone,
@@ -21,7 +21,7 @@ export default function JoinSession({
   onCode: (code: string) => void;
   onDone: (name: string, token: string) => void;
   onHome: () => void;
-}) {
+}) => {
   const [exists, setExists] = useState<boolean>();
 
   useEffect(() => {
@@ -59,4 +59,4 @@ export default function JoinSession({
       )}
     </Container>
   );
-}
+};

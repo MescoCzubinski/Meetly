@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import InputWithButton from "@/components/InputWithButton";
+import { InputWithButton } from "@/components/InputWithButton";
 
-export default function InterestInput({
+export const InterestInput = ({
   onAdd,
   autoFocus,
 }: {
   onAdd: (interest: string) => void;
   autoFocus?: boolean;
-}) {
+}) => {
   const [value, setValue] = useState("");
 
   return (
@@ -26,4 +26,4 @@ export default function InterestInput({
       buttonLabel="Add interest"
     />
   );
-}
+};

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, Link, Mail, Share2 } from "lucide-react";
-import { copyText } from "@/utils/copyInviteLink";
+import { copyText } from "@/utils/copyText";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,13 +13,13 @@ import whatsapp from "@/assets/whatsapp.svg";
 
 const TEXT = "Join my Meetly session";
 
-export default function ShareMenu({
+export const ShareMenu = ({
   link,
   disabled,
 }: {
   link: string;
   disabled?: boolean;
-}) {
+}) => {
   const [copied, setCopied] = useState(false);
   const text = encodeURIComponent(TEXT);
   const url = encodeURIComponent(link);
@@ -78,4 +78,4 @@ export default function ShareMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

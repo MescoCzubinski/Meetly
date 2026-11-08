@@ -4,8 +4,8 @@ import { toast } from "@/components/ui/toast";
 import { useInterests } from "@/hooks/useInterests";
 import { useSession } from "@/hooks/useSession";
 import { joinSession } from "@/lib/api";
-import Name from "@/components/Name";
-import InterestInput from "@/components/InterestInput";
+import { Name } from "@/components/Name";
+import { InterestInput } from "@/components/InterestInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,13 +26,13 @@ const EXAMPLES = [
   "Board games",
 ];
 
-export default function Profile({
+export const Profile = ({
   code,
   onDone,
 }: {
   code: string;
   onDone: (name: string, token: string) => void;
-}) {
+}) => {
   const [participant, setParticipant] = useState<{
     name: string;
     token: string;
@@ -149,4 +149,4 @@ export default function Profile({
       </CardFooter>
     </Card>
   );
-}
+};

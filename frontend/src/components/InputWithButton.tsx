@@ -11,7 +11,7 @@ const centerOnKeyboard = (el: HTMLElement) =>
     { once: true },
   );
 
-export default function InputWithButton({
+export const InputWithButton = ({
   onSubmit,
   button,
   buttonLabel,
@@ -20,7 +20,7 @@ export default function InputWithButton({
   onSubmit: (value: string) => void;
   button: React.ReactNode;
   buttonLabel?: string;
-}) {
+}) => {
   return (
     <form
       className="flex w-full items-center space-x-2"
@@ -56,4 +56,4 @@ export default function InputWithButton({
       </Button>
     </form>
   );
-}
+};

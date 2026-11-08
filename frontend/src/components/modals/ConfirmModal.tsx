@@ -1,7 +1,7 @@
-import Modal from "@/components/modals/Modal";
+import { Modal } from "@/components/modals/Modal";
 import { Button } from "@/components/ui/button";
 
-export default function ConfirmModal({
+export const ConfirmModal = ({
   open,
   onOpenChange,
   onConfirm,
@@ -15,7 +15,7 @@ export default function ConfirmModal({
   title?: string;
   description?: string;
   confirmLabel?: string;
-}) {
+}) => {
   return (
     <Modal
       open={open}
@@ -45,4 +45,4 @@ export default function ConfirmModal({
       <p>{description}</p>
     </Modal>
   );
-}
+};

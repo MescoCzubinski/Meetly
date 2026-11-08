@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
-function gridStyle(el: HTMLElement): CSSProperties {
+const gridStyle = (el: HTMLElement): CSSProperties => {
   const dpr = window.devicePixelRatio;
   const width = Math.round(el.clientWidth * dpr);
   const cols = Math.max(1, Math.round(width / (40 * dpr)));
@@ -17,9 +17,9 @@ function gridStyle(el: HTMLElement): CSSProperties {
     backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
     backgroundSize: `${width / dpr}px ${cell / dpr}px`,
   };
-}
+};
 
-export default function Background() {
+export const Background = () => {
   const ref = useRef<HTMLDivElement>(null);
   const [style, setStyle] = useState<CSSProperties>();
 
@@ -38,4 +38,4 @@ export default function Background() {
       style={style}
     />
   );
-}
+};

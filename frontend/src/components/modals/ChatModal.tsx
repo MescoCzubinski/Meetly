@@ -1,9 +1,10 @@
 import { ArrowLeft, MessageCircle } from "lucide-react";
 import type { ChatMessage } from "@/hooks/useMessages";
-import Chat from "@/components/Chat";
-import Modal from "@/components/modals/Modal";
+import { Chat } from "@/components/Chat";
+import { Modal } from "@/components/modals/Modal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 import {
   Item,
   ItemActions,
@@ -13,7 +14,7 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 
-export default function ChatModal({
+export const ChatModal = ({
   open,
   onOpenChange,
   own,
@@ -31,7 +32,7 @@ export default function ChatModal({
   onSelect: (person: string | null) => void;
   messages: ChatMessage[];
   onSend: (to: string, text: string) => void;
-}) {
+}) => {
   const lastMessage = (person: string) =>
     messages
       .filter(
@@ -66,13 +67,14 @@ export default function ChatModal({
       }
     >
       {selected ? (
-        <Chat
-          key={selected}
-          own={own}
-          other={selected}
-          messages={messages}
-          onSend={(text) => onSend(selected, text)}
-        />
+        <MessageScrollerProvider key={selected}>
+          <Chat
+            own={own}
+            other={selected}
+            messages={messages}
+            onSend={(text) => onSend(selected, text)}
+          />
+        </MessageScrollerProvider>
       ) : people.length === 0 ? (
         <p>Nobody else is here yet.</p>
       ) : (
@@ -97,4 +99,4 @@ export default function ChatModal({
       )}
     </Modal>
   );
-}
+};

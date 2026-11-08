@@ -6,7 +6,7 @@ import { simulateForces, type Body } from "@/utils/simulateForces";
 
 const SETTLED = 0.05;
 
-export default function LinkedGraph({
+export const LinkedGraph = ({
   answers,
   links,
   own,
@@ -16,7 +16,7 @@ export default function LinkedGraph({
   links: Link[];
   own: string;
   onSelect: (name: string) => void;
-}) {
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const bodies = useRef(new Map<string, Body>());
   const cards = useRef(new Map<string, HTMLDivElement>());
@@ -159,4 +159,4 @@ export default function LinkedGraph({
       ))}
     </div>
   );
-}
+};

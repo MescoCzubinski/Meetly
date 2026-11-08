@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SendHorizontal } from "lucide-react";
 import type { ChatMessage } from "@/hooks/useMessages";
-import InputWithButton from "@/components/InputWithButton";
+import { InputWithButton } from "@/components/InputWithButton";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Message, MessageContent } from "@/components/ui/message";
 import {
@@ -9,28 +9,23 @@ import {
   MessageScrollerButton,
   MessageScrollerContent,
   MessageScrollerItem,
-  MessageScrollerProvider,
   MessageScrollerViewport,
   useMessageScroller,
   useMessageScrollerScrollable,
 } from "@/components/ui/message-scroller";
 
-type ChatProps = {
+// Needs a MessageScrollerProvider above it.
+export const Chat = ({
+  own,
+  other,
+  messages,
+  onSend,
+}: {
   own: string;
   other: string;
   messages: ChatMessage[];
   onSend: (text: string) => void;
-};
-
-export default function Chat(props: ChatProps) {
-  return (
-    <MessageScrollerProvider>
-      <ChatBody {...props} />
-    </MessageScrollerProvider>
-  );
-}
-
-function ChatBody({ own, other, messages, onSend }: ChatProps) {
+}) => {
   const { scrollToEnd } = useMessageScroller();
   const { end: canScrollDown } = useMessageScrollerScrollable();
   const MAX_MESSAGE_LENGTH = 500;
@@ -92,4 +87,4 @@ function ChatBody({ own, other, messages, onSend }: ChatProps) {
       />
     </div>
   );
-}
+};

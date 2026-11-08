@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Info, LogOut, Menu, QrCode } from "lucide-react";
 import { endSession } from "@/lib/api";
 import { loadHostToken } from "@/lib/storage";
-import ConfirmModal from "@/components/modals/ConfirmModal";
-import ShareModal from "@/components/modals/ShareModal";
+import { ConfirmModal } from "@/components/modals/ConfirmModal";
+import { ShareModal } from "@/components/modals/ShareModal";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,7 +17,7 @@ import github from "@/assets/github.svg";
 const large = "h-auto px-4 py-2 text-2xl font-heading";
 const icon = "h-auto p-2 [&_svg]:size-8";
 
-export default function Header({
+export const Header = ({
   onHome,
   onAbout,
   code,
@@ -27,7 +27,7 @@ export default function Header({
   onAbout: () => void;
   code?: string;
   host?: boolean;
-}) {
+}) => {
   const [confirming, setConfirming] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [ending, setEnding] = useState(false);
@@ -137,4 +137,4 @@ export default function Header({
       )}
     </header>
   );
-}
+};

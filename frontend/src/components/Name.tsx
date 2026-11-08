@@ -1,14 +1,10 @@
 import { useState } from "react";
 import { Send } from "lucide-react";
-import InputWithButton from "@/components/InputWithButton";
+import { InputWithButton } from "@/components/InputWithButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
-export default function Name({
-  onSubmit,
-}: {
-  onSubmit: (name: string) => void;
-}) {
+export const Name = ({ onSubmit }: { onSubmit: (name: string) => void }) => {
   const [name, setName] = useState("");
 
   return (
@@ -34,4 +30,4 @@ export default function Name({
       </CardContent>
     </Card>
   );
-}
+};

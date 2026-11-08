@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { createSession } from "@/lib/api";
 import { saveHostToken } from "@/lib/storage";
-import Container from "@/components/Container";
-import QRCode from "@/components/QRCode";
+import { Container } from "@/components/Container";
+import { QRCode } from "@/components/QRCode";
 import { Button } from "@/components/ui/button";
 
-export default function CreateSession({
+export const CreateSession = ({
   onDone,
 }: {
   onDone: (code: string) => void;
-}) {
+}) => {
   const [code, setCode] = useState("");
 
   useEffect(() => {
@@ -42,4 +42,4 @@ export default function CreateSession({
       </div>
     </Container>
   );
-}
+};

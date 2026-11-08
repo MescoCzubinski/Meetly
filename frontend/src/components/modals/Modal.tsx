@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function Modal({
+export const Modal = ({
   open,
   onOpenChange,
   title,
@@ -21,7 +21,7 @@ export default function Modal({
   title: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
-}) {
+}) => {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -48,4 +48,4 @@ export default function Modal({
       </Dialog.Portal>
     </Dialog.Root>
   );
-}
+};
