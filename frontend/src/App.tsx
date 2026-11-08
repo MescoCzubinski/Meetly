@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Info } from "lucide-react";
 import { Home } from "@/views/Home";
 import { JoinSession } from "@/views/JoinSession";
@@ -6,8 +7,10 @@ import { CreateSession } from "@/views/CreateSession";
 import { Room } from "@/views/Room";
 import { Background } from "@/components/Background";
 import { Header } from "@/components/Header";
+import { RouteBoundary } from "@/components/RouteBoundary";
 import { AboutModal } from "@/components/modals/AboutModal";
 import { Button } from "@/components/ui/button";
+import { sessionQuery } from "@/lib/queries";
 import {
   loadSessions,
   removeSessions,
@@ -50,7 +53,12 @@ export const App = () => {
     [],
   );
   const [showingAbout, setShowingAbout] = useState(false);
-  const [joinedCode, setJoinedCode] = useState("");
+
+  const joinCode = state.view === "join" ? state.code : "";
+  const { data: joinable } = useQuery({
+    ...sessionQuery(joinCode),
+    enabled: joinCode !== "",
+  });
 
   useEffect(() => window.history.replaceState(state, ""), [state]);
 
@@ -63,8 +71,7 @@ export const App = () => {
     state.view === "home" ? undefined : () => setState({ view: "home" });
 
   const headerCode =
-    state.view === "room" ||
-    (state.view === "join" && state.code === joinedCode)
+    state.view === "room" || (state.view === "join" && joinable)
       ? state.code
       : undefined;
 
@@ -92,7 +99,6 @@ export const App = () => {
       view = (
         <JoinSession
           code={state.code}
-          onCode={setJoinedCode}
           onDone={(name, token) =>
             enterRoom({ code: state.code, name, guest: state.guest, token })
           }
@@ -124,7 +130,12 @@ export const App = () => {
             (state.view === "join" || state.view === "room") && !state.guest
           }
         />
-        {view}
+        <RouteBoundary
+          key={state.view}
+          onHome={() => setState({ view: "home" })}
+        >
+          {view}
+        </RouteBoundary>
       </div>
       <Button
         variant="neutral"

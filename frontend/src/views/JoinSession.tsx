@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { sessionExists } from "@/lib/api";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { sessionQuery } from "@/lib/queries";
 import { Container } from "@/components/Container";
 import { Profile } from "@/components/Profile";
 import { Button } from "@/components/ui/button";
@@ -13,32 +13,18 @@ import {
 
 export const JoinSession = ({
   code,
-  onCode,
   onDone,
   onHome,
 }: {
   code: string;
-  onCode: (code: string) => void;
   onDone: (name: string, token: string) => void;
   onHome: () => void;
 }) => {
-  const [exists, setExists] = useState<boolean>();
-
-  useEffect(() => {
-    let ignore = false;
-    sessionExists(code).then((ok) => {
-      if (ignore) return;
-      setExists(ok === true);
-      if (ok) onCode(code);
-    });
-    return () => {
-      ignore = true;
-    };
-  }, [code, onCode]);
+  const { data: exists } = useSuspenseQuery(sessionQuery(code));
 
   return (
     <Container>
-      {exists === undefined ? null : exists ? (
+      {exists ? (
         <Profile code={code} onDone={onDone} />
       ) : (
         <Card className="w-full">

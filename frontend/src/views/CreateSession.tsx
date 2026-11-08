@@ -1,31 +1,32 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { createSession } from "@/lib/api";
 import { saveHostToken } from "@/lib/storage";
 import { Container } from "@/components/Container";
 import { QRCode } from "@/components/QRCode";
 import { Button } from "@/components/ui/button";
 
+const MIN_SCRAMBLE = 600; // ms, so the code animation is seen even on a fast API
+
 export const CreateSession = ({
   onDone,
 }: {
   onDone: (code: string) => void;
 }) => {
-  const [code, setCode] = useState("");
+  const { mutate, data } = useMutation({
+    mutationFn: async () => {
+      const [session] = await Promise.all([
+        createSession(),
+        new Promise((resolve) => setTimeout(resolve, MIN_SCRAMBLE)),
+      ]);
+      return session;
+    },
+    onSuccess: (session) => saveHostToken(session.code, session.hostToken),
+    throwOnError: true,
+  });
+  const code = data?.code ?? "";
 
-  useEffect(() => {
-    let ignore = false;
-    Promise.all([
-      createSession(),
-      new Promise((resolve) => setTimeout(resolve, 600)),
-    ]).then(([data]) => {
-      if (ignore) return;
-      saveHostToken(data.code, data.hostToken);
-      setCode(data.code);
-    });
-    return () => {
-      ignore = true;
-    };
-  }, []);
+  useEffect(() => mutate(), [mutate]);
 
   return (
     <Container>

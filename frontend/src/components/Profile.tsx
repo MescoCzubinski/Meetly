@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { useInterests } from "@/hooks/useInterests";
@@ -33,10 +34,16 @@ export const Profile = ({
   code: string;
   onDone: (name: string, token: string) => void;
 }) => {
-  const [participant, setParticipant] = useState<{
-    name: string;
-    token: string;
-  }>();
+  const join = useMutation({
+    mutationFn: (name: string) => joinSession(code, name),
+    onError: () =>
+      toast.add({
+        type: "error",
+        title: "Could not join",
+        description: "Something went wrong, please try again",
+      }),
+  });
+  const participant = join.data;
   const [interests, setInterests] = useState<string[]>([]);
   useSession(code, participant?.token, true);
   const { ready, sendInterests } = useInterests(participant?.token);
@@ -64,21 +71,7 @@ export const Profile = ({
   };
 
   if (!participant)
-    return (
-      <Name
-        onSubmit={(name) =>
-          joinSession(code, name)
-            .then(setParticipant)
-            .catch(() =>
-              toast.add({
-                type: "error",
-                title: "Could not join",
-                description: "Something went wrong, please try again",
-              }),
-            )
-        }
-      />
-    );
+    return <Name onSubmit={join.mutate} pending={join.isPending} />;
 
   return (
     <Card className="w-full">

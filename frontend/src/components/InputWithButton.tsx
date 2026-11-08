@@ -15,11 +15,13 @@ export const InputWithButton = ({
   onSubmit,
   button,
   buttonLabel,
+  pending = false,
   ...inputProps
 }: Omit<React.ComponentProps<"input">, "onSubmit"> & {
   onSubmit: (value: string) => void;
   button: React.ReactNode;
   buttonLabel?: string;
+  pending?: boolean;
 }) => {
   return (
     <form
@@ -51,6 +53,7 @@ export const InputWithButton = ({
         variant="noShadow"
         className="h-12 min-w-12 shrink-0 px-3 text-lg [&_svg]:size-6"
         aria-label={buttonLabel}
+        disabled={pending}
       >
         {button}
       </Button>

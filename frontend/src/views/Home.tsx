@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import { toast } from "@/components/ui/toast";
-import { sessionExists } from "@/lib/api";
+import { sessionQuery } from "@/lib/queries";
 import { isValidCode } from "@/utils/isValidCode";
 import type { Session } from "@/lib/storage";
 import { Container } from "@/components/Container";
@@ -23,21 +24,20 @@ export const Home = ({
   onEnded: (codes: string[]) => void;
 }) => {
   const [code, setCode] = useState<string>("");
-  const [active, setActive] = useState<Session[]>([]);
+  const [checking, startChecking] = useTransition();
+  const queryClient = useQueryClient();
+
+  const codes = [...new Set(sessions.map((s) => s.code))];
+  const exists = useQueries({
+    queries: codes.map((code) => sessionQuery(code)),
+    combine: (results) => results.map((result) => result.data),
+  });
+  const active = sessions.filter((s) => exists[codes.indexOf(s.code)]);
+  const ended = codes.filter((_, i) => exists[i] === false);
 
   useEffect(() => {
-    let ignore = false;
-    const codes = [...new Set(sessions.map((s) => s.code))];
-    Promise.all(codes.map(sessionExists)).then((exists) => {
-      if (ignore) return;
-      const ended = codes.filter((_, i) => exists[i] === false);
-      if (ended.length > 0) onEnded(ended);
-      setActive(sessions.filter((s) => exists[codes.indexOf(s.code)] === true));
-    });
-    return () => {
-      ignore = true;
-    };
-  }, [sessions, onEnded]);
+    if (ended.length > 0) onEnded(ended);
+  }, [ended, onEnded]);
 
   return (
     <Container>
@@ -62,23 +62,35 @@ export const Home = ({
               placeholder="Or enter the code here"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              onSubmit={async (code) => {
+              onSubmit={(code) => {
                 if (!isValidCode(code)) {
                   toast.add({
                     type: "error",
                     title: "Invalid code",
                     description: "The session code is 6 digits, e.g. 123456",
                   });
-                } else if (await sessionExists(code)) {
-                  onJoin(code);
-                } else {
-                  toast.add({
-                    type: "error",
-                    title: "Session not found",
-                    description: `No session with code ${code}. It may have ended, so check the code or ask the host`,
-                  });
+                  return;
                 }
+                startChecking(async () => {
+                  try {
+                    if (await queryClient.fetchQuery(sessionQuery(code)))
+                      onJoin(code);
+                    else
+                      toast.add({
+                        type: "error",
+                        title: "Session not found",
+                        description: `No session with code ${code}. It may have ended, so check the code or ask the host`,
+                      });
+                  } catch {
+                    toast.add({
+                      type: "error",
+                      title: "Could not check the code",
+                      description: "Check your connection and try again",
+                    });
+                  }
+                });
               }}
+              pending={checking}
               button={<Send />}
               buttonLabel="Join"
             />

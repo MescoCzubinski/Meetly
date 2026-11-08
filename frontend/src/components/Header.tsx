@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Info, LogOut, Menu, QrCode } from "lucide-react";
 import { endSession } from "@/lib/api";
 import { loadHostToken } from "@/lib/storage";
 import { ConfirmModal } from "@/components/modals/ConfirmModal";
 import { ShareModal } from "@/components/modals/ShareModal";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { GITHUB_URL } from "@/lib/config";
+import { sessionQuery } from "@/lib/queries";
 import github from "@/assets/github.svg";
 
 const large = "h-auto px-4 py-2 text-2xl font-heading";
@@ -33,6 +36,21 @@ export const Header = ({
   const [ending, setEnding] = useState(false);
   const leave = () => (host ? setEnding(true) : setConfirming(true));
   const leaveLabel = host ? "End session" : "Leave";
+
+  const queryClient = useQueryClient();
+  const end = useMutation({
+    mutationFn: (code: string) => endSession(code, loadHostToken(code) ?? ""),
+    onSuccess: (_, code) => {
+      void queryClient.invalidateQueries(sessionQuery(code));
+      onHome?.();
+    },
+    onError: () =>
+      toast.add({
+        type: "error",
+        title: "Could not end the session",
+        description: "Something went wrong, please try again",
+      }),
+  });
 
   return (
     <header className="flex items-start justify-between">
@@ -129,10 +147,7 @@ export const Header = ({
           title="End session?"
           description="The session will end for everyone and all cards will be removed."
           confirmLabel="End session"
-          onConfirm={async () => {
-            await endSession(code, loadHostToken(code) ?? "");
-            onHome();
-          }}
+          onConfirm={() => end.mutate(code)}
         />
       )}
     </header>

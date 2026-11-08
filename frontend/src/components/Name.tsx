@@ -4,7 +4,13 @@ import { InputWithButton } from "@/components/InputWithButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
-export const Name = ({ onSubmit }: { onSubmit: (name: string) => void }) => {
+export const Name = ({
+  onSubmit,
+  pending,
+}: {
+  onSubmit: (name: string) => void;
+  pending: boolean;
+}) => {
   const [name, setName] = useState("");
 
   return (
@@ -24,6 +30,7 @@ export const Name = ({ onSubmit }: { onSubmit: (name: string) => void }) => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           onSubmit={onSubmit}
+          pending={pending}
           button={<Send />}
           buttonLabel="Next"
         />
