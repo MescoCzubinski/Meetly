@@ -25,7 +25,7 @@ export const Modal = ({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-20 bg-black/50" />
+        <Dialog.Backdrop className="fixed inset-0 z-20 bg-overlay" />
         <Dialog.Popup className="fixed top-1/2 left-1/2 z-20 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2">
           <Card className="max-h-[80dvh] overflow-y-auto">
             <CardHeader>

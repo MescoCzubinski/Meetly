@@ -96,7 +96,7 @@ export const Profile = ({
               ))
             ) : (
               <>
-                <span className="text-lg font-heading text-white [-webkit-text-stroke:4px_var(--border)] [paint-order:stroke_fill]">
+                <span className="text-lg font-heading text-background [-webkit-text-stroke:var(--text-stroke)] [paint-order:stroke_fill]">
                   E.g.
                 </span>
                 {EXAMPLES.map((example) => (
