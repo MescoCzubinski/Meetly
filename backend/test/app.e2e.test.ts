@@ -14,6 +14,9 @@ import { AppModule } from "../src/app.module";
 import { EmbeddingService } from "../src/interest/services/embedding.service";
 import { FakeEmbeddingService } from "./fake-embedding";
 
+type Answer = { name: string; interests: string[]; active: boolean };
+type Frame<T> = { event: string; data: T };
+
 let app: INestApplication;
 let base: string;
 const sockets: WebSocket[] = [];
@@ -39,33 +42,33 @@ afterAll(() => {
   void app.close();
 });
 
-function http(method: string, path: string, init: RequestInit = {}) {
+const http = (method: string, path: string, init: RequestInit = {}) => {
   return fetch(`http://${base}/api${path}`, {
     method,
     ...init,
     headers: { "content-type": "application/json", ...init.headers },
   });
-}
+};
 
-async function createSession() {
+const createSession = async () => {
   const res = await http("POST", "/sessions");
   expect(res.status).toBe(201);
   return (await res.json()) as { code: string; hostToken: string };
-}
+};
 
-async function register(code: string, name: string) {
+const register = async (code: string, name: string) => {
   const res = await http("POST", `/sessions/${code}/participants`, {
     body: JSON.stringify({ name }),
   });
   expect(res.status).toBe(201);
   return (await res.json()) as { name: string; token: string };
-}
+};
 
-function connect(path: string, query: string) {
+const connect = (path: string, query: string) => {
   const socket = new WebSocket(`ws://${base}/api${path}?${query}`);
   sockets.push(socket);
   const inbox: unknown[] = [];
-  const waiting: ((message: any) => void)[] = [];
+  const waiting: ((message: unknown) => void)[] = [];
   socket.onmessage = (e) => {
     const message = JSON.parse(e.data as string);
     const resolve = waiting.shift();
@@ -81,15 +84,17 @@ function connect(path: string, query: string) {
   return {
     opened,
     closed,
-    next: (): Promise<any> =>
+    next: <T = object>(): Promise<NoInfer<T>> =>
       inbox.length > 0
-        ? Promise.resolve(inbox.shift())
-        : new Promise((resolve) => waiting.push(resolve)),
+        ? Promise.resolve(inbox.shift() as T)
+        : new Promise<T>((resolve) =>
+            waiting.push((message) => resolve(message as T)),
+          ),
     send: (event: string, data: unknown) =>
       socket.send(JSON.stringify({ event, data })),
     close: () => socket.close(),
   };
-}
+};
 
 describe("health", () => {
   test("GET /health", async () => {
@@ -240,9 +245,9 @@ describe("interests", () => {
     expect(await bobWs.next()).toEqual(expected);
 
     cidWs.send("interest", { interests: ["go"] });
-    expect((await cidWs.next()).data.answers).toEqual([
-      { name: "Cid", interests: ["go"], active: true },
-    ]);
+    expect(
+      (await cidWs.next<Frame<{ answers: Answer[] }>>()).data.answers,
+    ).toEqual([{ name: "Cid", interests: ["go"], active: true }]);
   });
 
   test("invalid answers are rejected", async () => {
@@ -268,9 +273,9 @@ describe("interests", () => {
     }
 
     ws.send("interest", { interests: ["go"] });
-    expect((await ws.next()).data.answers).toEqual([
-      { name: "Ann", interests: ["go"], active: true },
-    ]);
+    expect(
+      (await ws.next<Frame<{ answers: Answer[] }>>()).data.answers,
+    ).toEqual([{ name: "Ann", interests: ["go"], active: true }]);
   });
 
   test("a participant leaving the session is marked inactive", async () => {
@@ -289,13 +294,15 @@ describe("interests", () => {
     await bobWs.next();
 
     annSession.close();
-    expect((await bobWs.next()).data.answers).toEqual([
-      { name: "Ann", interests: ["chess"], active: false },
-    ]);
+    expect(
+      (await bobWs.next<Frame<{ answers: Answer[] }>>()).data.answers,
+    ).toEqual([{ name: "Ann", interests: ["chess"], active: false }]);
 
     const rejoined = connect("/session", `token=${ann.token}`);
     await rejoined.opened;
-    expect((await bobWs.next()).data.answers[0].active).toBe(true);
+    expect(
+      (await bobWs.next<Frame<{ answers: Answer[] }>>()).data.answers[0].active,
+    ).toBe(true);
   });
 });
 
@@ -335,7 +342,7 @@ describe("messages", () => {
       [otherBobWs, "Bob"],
     ] as const) {
       ws.send("message", { to: from, text: "note to self" });
-      expect((await ws.next()).data).toMatchObject({
+      expect((await ws.next<Frame<object>>()).data).toMatchObject({
         from,
         text: "note to self",
       });
@@ -370,7 +377,10 @@ describe("messages", () => {
     });
 
     ws.send("message", { to: "Bob", text: "ok" });
-    expect((await ws.next()).data).toMatchObject({ to: "Bob", text: "ok" });
+    expect((await ws.next<Frame<object>>()).data).toMatchObject({
+      to: "Bob",
+      text: "ok",
+    });
   });
 
   test("history is replayed on reconnect", async () => {
@@ -406,10 +416,14 @@ describe("messages", () => {
 
     for (let i = 0; i < 20; i++) {
       ws.send("message", { to: "Zed", text: "hi" });
-      expect((await ws.next()).data.message).toBe("Unknown recipient");
+      expect((await ws.next<Frame<{ message: string }>>()).data.message).toBe(
+        "Unknown recipient",
+      );
     }
     ws.send("message", { to: "Zed", text: "hi" });
-    expect((await ws.next()).data.message).toBe("Too many messages, slow down");
+    expect((await ws.next<Frame<{ message: string }>>()).data.message).toBe(
+      "Too many messages, slow down",
+    );
   });
 });
 

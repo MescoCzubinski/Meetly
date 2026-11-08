@@ -16,11 +16,11 @@ let eventBus: EventBus;
 let service: Record<"isActive" | "send" | "getFor", ReturnType<typeof mock>>;
 let gateway: MessageGateway;
 
-function connect(name: string, code = "123456") {
+const connect = (name: string, code = "123456") => {
   const socket = fakeSocket();
   gateway.handleConnection(socket, tokenRequest(code, name));
   return socket;
-}
+};
 
 beforeEach(() => {
   eventBus = new EventBus();
