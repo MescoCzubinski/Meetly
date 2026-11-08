@@ -61,8 +61,8 @@ export const Room = ({
         <Card size="sm" className="w-full min-w-0">
           <CardContent className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
-              {interests.map((interest, index) => (
-                <Badge key={index} variant="neutral" className="text-base">
+              {interests.map((interest) => (
+                <Badge key={interest} variant="neutral" className="text-base">
                   {interest}
                   {interests.length > 1 && (
                     <button
@@ -70,7 +70,7 @@ export const Room = ({
                       className="cursor-pointer"
                       aria-label={`Remove ${interest}`}
                       onClick={() =>
-                        sendInterests(interests.filter((_, i) => i !== index))
+                        sendInterests(interests.filter((i) => i !== interest))
                       }
                     >
                       <X />
@@ -83,6 +83,7 @@ export const Room = ({
               Add an interest
             </Label>
             <InterestInput
+              interests={interests}
               onAdd={(interest) => sendInterests([...interests, interest])}
             />
           </CardContent>

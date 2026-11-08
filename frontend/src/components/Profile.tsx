@@ -56,19 +56,8 @@ export const Profile = ({
     return () => observer.disconnect();
   }, []);
 
-  const addInterest = (interest: string) => {
-    const lower = interest.toLowerCase();
-    const existing = interests.find((i) => i.toLowerCase() === lower);
-    if (existing) {
-      toast.add({
-        type: "error",
-        title: "Already added",
-        description: `"${existing}" is already on your list`,
-      });
-      return;
-    }
+  const addInterest = (interest: string) =>
     setInterests([...interests, interest]);
-  };
 
   if (!participant)
     return <Name onSubmit={join.mutate} pending={join.isPending} />;
@@ -83,22 +72,22 @@ export const Profile = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <InterestInput autoFocus onAdd={addInterest} />
+        <InterestInput autoFocus interests={interests} onAdd={addInterest} />
         <div
           style={{ height: badgesHeight }}
           className="overflow-hidden transition-[height] duration-300"
         >
           <div ref={measureBadges} className="flex flex-wrap gap-2">
             {interests.length > 0 ? (
-              interests.map((interest, index) => (
-                <Badge key={index} variant="neutral" className="text-base">
+              interests.map((interest) => (
+                <Badge key={interest} variant="neutral" className="text-base">
                   {interest}
                   <button
                     type="button"
                     className="cursor-pointer"
                     aria-label={`Remove ${interest}`}
                     onClick={() =>
-                      setInterests(interests.filter((_, i) => i !== index))
+                      setInterests(interests.filter((i) => i !== interest))
                     }
                   >
                     <X />

@@ -55,8 +55,8 @@ export const Chat = ({
         <MessageScroller className="p-4">
           <MessageScrollerViewport>
             <MessageScrollerContent className="gap-4">
-              {conversation.map((message, index) => (
-                <MessageScrollerItem key={index} messageId={`message-${index}`}>
+              {conversation.map((message) => (
+                <MessageScrollerItem key={message.id} messageId={message.id}>
                   <Message align={message.from === own ? "end" : "start"}>
                     <MessageContent>
                       <Bubble
@@ -75,6 +75,7 @@ export const Chat = ({
       </div>
       <InputWithButton
         placeholder={`Message ${other}`}
+        aria-label={`Message ${other}`}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onSubmit={(text) => {
