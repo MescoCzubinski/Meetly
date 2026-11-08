@@ -114,8 +114,21 @@ describe("sessions over HTTP", () => {
   });
 
   test("rejects malformed and unknown codes", async () => {
-    expect((await http("GET", "/sessions/abc")).status).toBe(400);
-    expect((await http("GET", "/sessions/000000")).status).toBe(404);
+    const malformed = await http("GET", "/sessions/abc");
+    expect(malformed.status).toBe(400);
+    expect(await malformed.json()).toEqual({
+      statusCode: 400,
+      error: "Bad Request",
+      message: "Code must be 6 digits long",
+    });
+
+    const unknown = await http("GET", "/sessions/000000");
+    expect(unknown.status).toBe(404);
+    expect(await unknown.json()).toEqual({
+      statusCode: 404,
+      error: "Not Found",
+      message: "Session 000000 not found",
+    });
   });
 
   test("validates participant names", async () => {

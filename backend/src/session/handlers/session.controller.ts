@@ -7,7 +7,6 @@ import {
   HttpCode,
   Param,
   Post,
-  ValidationPipe,
 } from "@nestjs/common";
 import { SessionService } from "../services/session.service";
 import { ParticipantDto } from "./participant.dto";
@@ -28,10 +27,7 @@ export class SessionController {
   }
 
   @Post(":code/participants")
-  register(
-    @Param("code") code: string,
-    @Body(new ValidationPipe({ whitelist: true })) body: ParticipantDto,
-  ) {
+  register(@Param("code") code: string, @Body() body: ParticipantDto) {
     return this.sessionService.register(code, body.name);
   }
 

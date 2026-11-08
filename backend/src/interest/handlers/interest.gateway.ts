@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { Logger, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Logger, UseFilters } from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
@@ -12,6 +12,7 @@ import {
 import type { WebSocket } from "ws";
 import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
+import { WsExceptionFilter } from "../../common/exceptions/ws-exception.filter";
 import { RateLimiter } from "../../common/rate-limit";
 import { InterestDto } from "./interest.dto";
 import { InterestService } from "../services/interest.service";
@@ -20,6 +21,7 @@ const RATE_LIMIT = 10;
 const RATE_LIMIT_WINDOW = 10 * 1000; // 10 seconds
 
 @WebSocketGateway({ path: "/api/interests" })
+@UseFilters(new WsExceptionFilter())
 export class InterestGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -75,12 +77,6 @@ export class InterestGateway
   }
 
   @SubscribeMessage("interest")
-  @UsePipes(
-    new ValidationPipe({
-      whitelist: true,
-      exceptionFactory: () => new WsException("Invalid interest"),
-    }),
-  )
   async handleAnswer(
     @ConnectedSocket() client: WebSocket,
     @MessageBody() body: InterestDto,

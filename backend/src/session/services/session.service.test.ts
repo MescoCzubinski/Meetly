@@ -7,12 +7,12 @@ import {
   mock,
   test,
 } from "bun:test";
-import { ForbiddenException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { HostAuth } from "../../common/auth/host-auth";
 import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
 import { InvalidSessionCodeException } from "../exceptions/invalid-code";
+import { NotHostException } from "../exceptions/not-host";
 import { SessionRepository } from "../repositories/session.repository";
 import { SessionService } from "./session.service";
 
@@ -101,7 +101,7 @@ test("only the session's host can end it", () => {
   const other = service.create();
   const { token } = service.register(code, "Ann");
   for (const bad of ["", token, other.hostToken])
-    expect(() => service.end(code, bad)).toThrow(ForbiddenException);
+    expect(() => service.end(code, bad)).toThrow(NotHostException);
 
   service.end(code, hostToken);
   expect(service.exists(code)).toBe(false);

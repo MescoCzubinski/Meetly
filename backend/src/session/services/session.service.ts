@@ -1,10 +1,11 @@
 import { randomInt } from "node:crypto";
-import { ForbiddenException, Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { HostAuth } from "../../common/auth/host-auth";
 import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
 import { SessionNotFoundException } from "../exceptions/not-found";
 import { InvalidSessionCodeException } from "../exceptions/invalid-code";
+import { NotHostException } from "../exceptions/not-host";
 import {
   type Session,
   SessionRepository,
@@ -48,10 +49,7 @@ export class SessionService {
 
   end(code: string, hostToken: string): void {
     this.assertValidSession(code);
-    if (!this.hostAuth.isHost(hostToken, code)) {
-      this.logger.warn(`Session ${code}: end rejected, invalid host token`);
-      throw new ForbiddenException("Only the host can end the session");
-    }
+    if (!this.hostAuth.isHost(hostToken, code)) throw new NotHostException();
     this.logger.log(`Session ${code} ended by host`);
     this.remove(code);
   }

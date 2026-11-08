@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { UsePipes, ValidationPipe } from "@nestjs/common";
+import { Logger, UseFilters } from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
@@ -12,6 +12,7 @@ import {
 import type { WebSocket } from "ws";
 import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
+import { WsExceptionFilter } from "../../common/exceptions/ws-exception.filter";
 import { RateLimiter } from "../../common/rate-limit";
 import { MessageDto } from "./message.dto";
 import { MessageService } from "../services/message.service";
@@ -20,9 +21,11 @@ const RATE_LIMIT = 20;
 const RATE_LIMIT_WINDOW = 10 * 1000; // 10 seconds
 
 @WebSocketGateway({ path: "/api/messages" })
+@UseFilters(new WsExceptionFilter())
 export class MessageGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
+  private readonly logger = new Logger(MessageGateway.name);
   private readonly clients = new Map<
     WebSocket,
     { code: string; name: string }
@@ -44,11 +47,13 @@ export class MessageGateway
   handleConnection(client: WebSocket, request: IncomingMessage) {
     const participant = this.participantAuth.verify(request);
     if (!participant) {
+      this.logger.warn("Connection rejected: invalid token");
       client.close(4401, "Invalid token");
       return;
     }
     const { code, name } = participant;
     if (!this.messageService.isActive(code)) {
+      this.logger.warn(`Connection to ${code} rejected: session not found`);
       client.close(4404, "Session not found");
       return;
     }
@@ -68,12 +73,6 @@ export class MessageGateway
   }
 
   @SubscribeMessage("message")
-  @UsePipes(
-    new ValidationPipe({
-      whitelist: true,
-      exceptionFactory: () => new WsException("Invalid message"),
-    }),
-  )
   handleMessage(
     @ConnectedSocket() client: WebSocket,
     @MessageBody() body: MessageDto,
@@ -82,8 +81,6 @@ export class MessageGateway
     if (!info || !this.messageService.isActive(info.code)) return;
     if (!this.limiter.consume(client))
       throw new WsException("Too many messages, slow down");
-    if (!this.messageService.isRegistered(info.code, body.to))
-      throw new WsException("Unknown recipient");
 
     const message = this.messageService.send(
       info.code,

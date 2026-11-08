@@ -1,5 +1,6 @@
 import { beforeEach, expect, test } from "bun:test";
 import { EventBus } from "../../common/events/event-bus";
+import { UnknownRecipientException } from "../exceptions/unknown-recipient";
 import { MessageRepository } from "../repositories/message.repository";
 import { MessageService } from "./message.service";
 
@@ -15,12 +16,14 @@ beforeEach(() => {
 });
 
 test("only registered participants can receive messages", () => {
-  eventBus.emit("participant.registered", CODE, "Bob");
-  expect(service.isRegistered(CODE, "Bob")).toBe(true);
-  expect(service.isRegistered(CODE, "Zed")).toBe(false);
+  expect(() => service.send(CODE, "Ann", "Zed", "hi")).toThrow(
+    UnknownRecipientException,
+  );
+  expect(service.getFor(CODE, "Ann")).toEqual([]);
 });
 
 test("sent messages appear in both participants' history only", () => {
+  eventBus.emit("participant.registered", CODE, "Bob");
   const message = service.send(CODE, "Ann", "Bob", "hi");
   expect(message).toEqual({
     from: "Ann",
@@ -34,6 +37,7 @@ test("sent messages appear in both participants' history only", () => {
 });
 
 test("ending the session drops its messages", () => {
+  eventBus.emit("participant.registered", CODE, "Bob");
   service.send(CODE, "Ann", "Bob", "hi");
   eventBus.emit("session.ended", CODE);
   expect(service.isActive(CODE)).toBe(false);
