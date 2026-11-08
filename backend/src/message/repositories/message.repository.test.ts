@@ -10,6 +10,7 @@ beforeEach(() => {
 });
 
 const message = (from: string, to: string) => ({
+  id: `${from}-${to}`,
   from,
   to,
   text: "",

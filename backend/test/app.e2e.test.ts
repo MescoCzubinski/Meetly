@@ -256,6 +256,8 @@ describe("interests", () => {
       { interests: ["A".repeat(21)] },
       { interests: "chess" },
       { interests: [5] },
+      { interests: ["  "] },
+      { interests: ["chess", "Chess"] },
     ];
     for (const data of invalid) {
       ws.send("interest", data);
@@ -317,7 +319,13 @@ describe("messages", () => {
     annWs.send("message", { to: "Bob", text: "hi" });
     const expected = {
       event: "message",
-      data: { from: "Ann", to: "Bob", text: "hi", sentAt: expect.any(Number) },
+      data: {
+        id: expect.any(String),
+        from: "Ann",
+        to: "Bob",
+        text: "hi",
+        sentAt: expect.any(Number),
+      },
     };
     for (const ws of [annWs, annTab, bobWs])
       expect(await ws.next()).toEqual(expected);
@@ -379,7 +387,13 @@ describe("messages", () => {
     expect(await bobWs.next()).toEqual({
       event: "messages",
       data: [
-        { from: "Ann", to: "Bob", text: "hi", sentAt: expect.any(Number) },
+        {
+          id: expect.any(String),
+          from: "Ann",
+          to: "Bob",
+          text: "hi",
+          sentAt: expect.any(Number),
+        },
       ],
     });
   });

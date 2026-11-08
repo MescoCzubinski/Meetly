@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 
 export interface Message {
+  id: string;
   from: string;
   to: string;
   text: string;

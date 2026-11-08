@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
 import { HostAuth } from "../../common/auth/host-auth";
 import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
@@ -18,8 +18,12 @@ const CLEANUP_INTERVAL = 60 * 1000; // 1 minute
 const CODE_PATTERN = /^\d{6}$/;
 
 @Injectable()
-export class SessionService {
+export class SessionService implements OnModuleDestroy {
   private readonly logger = new Logger(SessionService.name);
+  private readonly cleanup = setInterval(
+    () => this.removeExpired(),
+    CLEANUP_INTERVAL,
+  );
   private readonly emptyTimers = new Map<string, NodeJS.Timeout>();
   private readonly connections = new Map<string, (string | undefined)[]>();
 
@@ -28,8 +32,10 @@ export class SessionService {
     private readonly eventBus: EventBus,
     private readonly hostAuth: HostAuth,
     private readonly participantAuth: ParticipantAuth,
-  ) {
-    setInterval(() => this.removeExpired(), CLEANUP_INTERVAL);
+  ) {}
+
+  onModuleDestroy(): void {
+    clearInterval(this.cleanup);
   }
 
   create(): { code: string; hostToken: string } {

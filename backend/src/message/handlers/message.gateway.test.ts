@@ -10,7 +10,7 @@ import { EventBus } from "../../common/events/event-bus";
 import type { MessageService } from "../services/message.service";
 import { MessageGateway } from "./message.gateway";
 
-const message = { from: "Ann", to: "Bob", text: "hi", sentAt: 1 };
+const message = { id: "1", from: "Ann", to: "Bob", text: "hi", sentAt: 1 };
 
 let eventBus: EventBus;
 let service: Record<"isActive" | "send" | "getFor", ReturnType<typeof mock>>;

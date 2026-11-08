@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { EventBus } from "../../common/events/event-bus";
 import { UnknownRecipientException } from "../exceptions/unknown-recipient";
@@ -32,7 +33,7 @@ export class MessageService {
   send(code: string, from: string, to: string, text: string): Message {
     if (!this.messageRepository.hasParticipant(code, to))
       throw new UnknownRecipientException();
-    const message = { from, to, text, sentAt: Date.now() };
+    const message = { id: randomUUID(), from, to, text, sentAt: Date.now() };
     this.messageRepository.save(code, message);
     this.logger.debug(`Session ${code}: message ${from} -> ${to}`);
     return message;

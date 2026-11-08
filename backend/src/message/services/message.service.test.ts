@@ -26,6 +26,7 @@ test("sent messages appear in both participants' history only", () => {
   eventBus.emit("participant.registered", CODE, "Bob");
   const message = service.send(CODE, "Ann", "Bob", "hi");
   expect(message).toEqual({
+    id: expect.any(String),
     from: "Ann",
     to: "Bob",
     text: "hi",
