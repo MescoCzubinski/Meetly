@@ -1,7 +1,7 @@
-import { BadRequestException } from "@nestjs/common";
+import { DomainException } from "../../common/exceptions/domain.exception";
 
-export class InvalidSessionCodeException extends BadRequestException {
+export class InvalidSessionCodeException extends DomainException {
   constructor() {
-    super("Code must be 6 digits long");
+    super("invalid", "Code must be 6 digits long");
   }
 }

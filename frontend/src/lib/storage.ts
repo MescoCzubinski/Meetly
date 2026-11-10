@@ -8,13 +8,24 @@ export type Session = {
 const SESSIONS_KEY = "sessions";
 const HOST_TOKENS_KEY = "hostTokens";
 
-const read = <T>(key: string, fallback: T): T => {
+const read = (key: string): unknown => {
   try {
-    return JSON.parse(localStorage.getItem(key) ?? "null") ?? fallback;
+    return JSON.parse(localStorage.getItem(key) ?? "null");
   } catch {
-    return fallback;
+    // unreadable or unavailable storage counts as empty
+    return null;
   }
 };
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const isSession = (value: unknown): value is Session =>
+  isRecord(value) &&
+  typeof value.code === "string" &&
+  typeof value.name === "string" &&
+  typeof value.guest === "boolean" &&
+  typeof value.token === "string";
 
 const write = (key: string, value: unknown) => {
   try {
@@ -24,8 +35,10 @@ const write = (key: string, value: unknown) => {
   }
 };
 
-export const loadSessions = () =>
-  read<Session[]>(SESSIONS_KEY, []).filter((s) => s.token);
+export const loadSessions = (): Session[] => {
+  const stored = read(SESSIONS_KEY);
+  return Array.isArray(stored) ? stored.filter(isSession) : [];
+};
 
 const storeSessions = (next: Session[]): Session[] => {
   write(SESSIONS_KEY, next);
@@ -43,9 +56,16 @@ export const saveSession = (session: Session): Session[] =>
 export const removeSessions = (codes: string[]): Session[] =>
   storeSessions(loadSessions().filter((s) => !codes.includes(s.code)));
 
-const loadHostTokens = () => read<Record<string, string>>(HOST_TOKENS_KEY, {});
+const loadHostTokens = (): Record<string, string> => {
+  const stored = read(HOST_TOKENS_KEY);
+  if (!isRecord(stored)) return {};
+  return Object.fromEntries(
+    Object.entries(stored).filter(([, token]) => typeof token === "string"),
+  ) as Record<string, string>;
+};
 
-export const loadHostToken = (code: string): string => loadHostTokens()[code];
+export const loadHostToken = (code: string): string | undefined =>
+  loadHostTokens()[code];
 
 export const saveHostToken = (code: string, token: string) =>
   write(HOST_TOKENS_KEY, { ...loadHostTokens(), [code]: token });

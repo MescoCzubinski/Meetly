@@ -1,12 +1,23 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  setSystemTime,
+  test,
+} from "bun:test";
+import { Reflector } from "@nestjs/core";
 import {
   fakeRequest,
   fakeSocket,
   participantAuth,
   sent,
   tokenRequest,
+  wsContext,
 } from "../../../test/fakes";
 import { EventBus } from "../../common/events/event-bus";
+import { WsRateLimitGuard } from "../../common/rate-limit.guard";
 import type { InterestService } from "../services/interest.service";
 import { InterestGateway } from "./interest.gateway";
 
@@ -21,11 +32,11 @@ let service: Record<
 >;
 let gateway: InterestGateway;
 
-function connect(name: string, code = "123456") {
+const connect = (name: string, code = "123456") => {
   const socket = fakeSocket();
   gateway.handleConnection(socket, tokenRequest(code, name));
   return socket;
-}
+};
 
 beforeEach(() => {
   eventBus = new EventBus();
@@ -105,21 +116,37 @@ describe("presence", () => {
   });
 });
 
-test("rejects updates past the rate limit", async () => {
-  const ann = connect("Ann");
-  for (let i = 0; i < 10; i++)
-    await gateway.handleAnswer(ann, { interests: ["chess"] });
-
-  await expect(
-    gateway.handleAnswer(ann, { interests: ["chess"] }),
-  ).rejects.toThrow("Too many updates, slow down");
-  expect(service.addAnswer).toHaveBeenCalledTimes(10);
-});
-
 test("ending a session closes only its sockets", () => {
   const ann = connect("Ann");
   const other = connect("Cid", "654321");
   eventBus.emit("session.ended", "123456");
   expect(ann.close).toHaveBeenCalledWith(4410, "Session ended");
   expect(other.close).not.toHaveBeenCalled();
+});
+
+describe("rate limit", () => {
+  afterEach(() => setSystemTime());
+
+  test("allows 10 updates per client every 10 seconds", () => {
+    const guard = new WsRateLimitGuard(new Reflector());
+    const context = wsContext(
+      InterestGateway.prototype.handleAnswer,
+      fakeSocket(),
+    );
+    const start = Date.now();
+    setSystemTime(start);
+
+    for (let i = 0; i < 10; i++) expect(guard.canActivate(context)).toBe(true);
+    expect(() => guard.canActivate(context)).toThrow(
+      "Too many updates, slow down",
+    );
+
+    setSystemTime(start + 9999);
+    expect(() => guard.canActivate(context)).toThrow(
+      "Too many updates, slow down",
+    );
+
+    setSystemTime(start + 10_000);
+    expect(guard.canActivate(context)).toBe(true);
+  });
 });

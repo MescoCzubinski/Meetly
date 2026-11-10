@@ -1,15 +1,15 @@
-import Modal from "@/components/modals/Modal";
+import { Modal } from "@/components/modals/Modal";
 import { MODEL_URL } from "@/lib/config";
 
 const link = "underline underline-offset-2";
 
-export default function AboutModal({
+export const AboutModal = ({
   open,
   onOpenChange,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}) {
+}) => {
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="About Meetly">
       <div className="flex flex-col gap-3">
@@ -45,4 +45,4 @@ export default function AboutModal({
       </div>
     </Modal>
   );
-}
+};

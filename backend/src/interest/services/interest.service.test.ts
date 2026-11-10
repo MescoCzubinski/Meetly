@@ -57,7 +57,7 @@ describe("InterestService", () => {
     });
 
     test("scales similarity above the threshold", async () => {
-      embedding.similarity = (code, a, b) => (a === b ? 1 : 0.8);
+      embedding.similarity = (_code, a, b) => (a === b ? 1 : 0.8);
       await service.addAnswer(CODE, { name: "Ann", interests: ["chess"] });
       await service.addAnswer(CODE, { name: "Bob", interests: ["go"] });
       const [[a, b, strength]] = service.getLinks(CODE);

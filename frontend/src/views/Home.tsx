@@ -1,15 +1,16 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import { toast } from "@/components/ui/toast";
-import { sessionExists } from "@/lib/api";
+import { sessionQuery } from "@/lib/queries";
 import { isValidCode } from "@/utils/isValidCode";
 import type { Session } from "@/lib/storage";
-import Container from "@/components/Container";
-import InputWithButton from "@/components/InputWithButton";
+import { Container } from "@/components/Container";
+import { InputWithButton } from "@/components/InputWithButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function Home({
+export const Home = ({
   onHost,
   onJoin,
   sessions,
@@ -21,23 +22,22 @@ export default function Home({
   sessions: Session[];
   onResume: (session: Session) => void;
   onEnded: (codes: string[]) => void;
-}) {
+}) => {
   const [code, setCode] = useState<string>("");
-  const [active, setActive] = useState<Session[]>([]);
+  const [checking, startChecking] = useTransition();
+  const queryClient = useQueryClient();
+
+  const codes = [...new Set(sessions.map((s) => s.code))];
+  const lookups = useQueries({
+    queries: codes.map((code) => sessionQuery(code)),
+  });
+  const active = sessions.filter((s) => lookups[codes.indexOf(s.code)].data);
+  const ended = codes.filter((_, i) => lookups[i].data === false);
+  const failed = lookups.filter((l) => l.isError && l.data === undefined);
 
   useEffect(() => {
-    let ignore = false;
-    const codes = [...new Set(sessions.map((s) => s.code))];
-    Promise.all(codes.map(sessionExists)).then((exists) => {
-      if (ignore) return;
-      const ended = codes.filter((_, i) => exists[i] === false);
-      if (ended.length > 0) onEnded(ended);
-      setActive(sessions.filter((s) => exists[codes.indexOf(s.code)] === true));
-    });
-    return () => {
-      ignore = true;
-    };
-  }, [sessions, onEnded]);
+    if (ended.length > 0) onEnded(ended);
+  }, [ended, onEnded]);
 
   return (
     <Container>
@@ -62,29 +62,41 @@ export default function Home({
               placeholder="Or enter the code here"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              onSubmit={async (code) => {
+              onSubmit={(code) => {
                 if (!isValidCode(code)) {
                   toast.add({
                     type: "error",
                     title: "Invalid code",
                     description: "The session code is 6 digits, e.g. 123456",
                   });
-                } else if (await sessionExists(code)) {
-                  onJoin(code);
-                } else {
-                  toast.add({
-                    type: "error",
-                    title: "Session not found",
-                    description: `No session with code ${code}. It may have ended, so check the code or ask the host`,
-                  });
+                  return;
                 }
+                startChecking(async () => {
+                  try {
+                    if (await queryClient.fetchQuery(sessionQuery(code)))
+                      onJoin(code);
+                    else
+                      toast.add({
+                        type: "error",
+                        title: "Session not found",
+                        description: `No session with code ${code}. It may have ended, so check the code or ask the host`,
+                      });
+                  } catch {
+                    toast.add({
+                      type: "error",
+                      title: "Could not check the code",
+                      description: "Check your connection and try again",
+                    });
+                  }
+                });
               }}
+              pending={checking}
               button={<Send />}
               buttonLabel="Join"
             />
           </CardContent>
         </Card>
-        {active.length > 0 && (
+        {(active.length > 0 || failed.length > 0) && (
           <Card className="w-full">
             <CardHeader>
               <CardTitle>
@@ -103,10 +115,24 @@ export default function Home({
                   <span>as {session.name}</span>
                 </Button>
               ))}
+              {failed.length > 0 && (
+                <div role="alert" className="flex flex-col gap-2">
+                  <p>Could not check some of your sessions.</p>
+                  <Button
+                    className="w-full"
+                    disabled={failed.some((l) => l.isFetching)}
+                    onClick={() =>
+                      void Promise.all(failed.map((l) => l.refetch()))
+                    }
+                  >
+                    Try again
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
       </div>
     </Container>
   );
-}
+};

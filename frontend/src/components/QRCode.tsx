@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { QRCodeCanvas } from "qrcode.react";
-import { copyText, inviteLink } from "@/utils/copyInviteLink";
-import ShareMenu from "@/components/ShareMenu";
+import { QRCodeSVG } from "qrcode.react";
+import { copyText } from "@/utils/copyText";
+import { inviteLink } from "@/utils/inviteLink";
+import { ShareMenu } from "@/components/ShareMenu";
 import { Button } from "@/components/ui/button";
 
 const randomCode = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -12,7 +13,7 @@ const scramble = () => ({
   ).join(""),
 });
 
-export default function QRCode({ code }: { code: string }) {
+export const QRCode = ({ code }: { code: string }) => {
   const [copied, setCopied] = useState(false);
   const [scrambled, setScrambled] = useState(scramble);
 
@@ -42,15 +43,15 @@ export default function QRCode({ code }: { code: string }) {
         <ShareMenu link={inviteLink(code)} disabled={!code} />
       </div>
       <div className="rounded-base border-2 border-border bg-secondary-background p-4 shadow-shadow">
-        <QRCodeCanvas
+        <QRCodeSVG
           value={code ? inviteLink(code) : scrambled.qr}
           size={1024}
           bgColor="transparent"
-          fgColor="#000000"
+          fgColor="currentColor"
           level="H"
           style={{ width: "100%", height: "auto" }}
         />
       </div>
     </div>
   );
-}
+};

@@ -1,36 +1,42 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
-import { WsException } from "@nestjs/websockets";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  setSystemTime,
+  test,
+} from "bun:test";
+import { Reflector } from "@nestjs/core";
 import {
   fakeRequest,
   fakeSocket,
   participantAuth,
   sent,
   tokenRequest,
+  wsContext,
 } from "../../../test/fakes";
 import { EventBus } from "../../common/events/event-bus";
+import { WsRateLimitGuard } from "../../common/rate-limit.guard";
 import type { MessageService } from "../services/message.service";
 import { MessageGateway } from "./message.gateway";
 
-const message = { from: "Ann", to: "Bob", text: "hi", sentAt: 1 };
+const message = { id: "1", from: "Ann", to: "Bob", text: "hi", sentAt: 1 };
 
 let eventBus: EventBus;
-let service: Record<
-  "isActive" | "isRegistered" | "send" | "getFor",
-  ReturnType<typeof mock>
->;
+let service: Record<"isActive" | "send" | "getFor", ReturnType<typeof mock>>;
 let gateway: MessageGateway;
 
-function connect(name: string, code = "123456") {
+const connect = (name: string, code = "123456") => {
   const socket = fakeSocket();
   gateway.handleConnection(socket, tokenRequest(code, name));
   return socket;
-}
+};
 
 beforeEach(() => {
   eventBus = new EventBus();
   service = {
     isActive: mock(() => true),
-    isRegistered: mock(() => true),
     send: mock(() => message),
     getFor: mock(() => [message]),
   };
@@ -63,53 +69,18 @@ describe("connection", () => {
   });
 });
 
-describe("sending", () => {
-  test("delivers to every socket of sender and recipient in the session", () => {
-    const ann = connect("Ann");
-    const annTab = connect("Ann");
-    const bob = connect("Bob");
-    const cid = connect("Cid");
-    const otherBob = connect("Bob", "654321");
-
-    gateway.handleMessage(ann, { to: "Bob", text: "hi" });
-    expect(service.send).toHaveBeenCalledWith("123456", "Ann", "Bob", "hi");
-    for (const socket of [ann, annTab, bob])
-      expect(sent(socket).at(-1)).toEqual({ event: "message", data: message });
-    for (const socket of [cid, otherBob]) expect(sent(socket)).toHaveLength(1);
-  });
-
-  test("rejects unknown recipients", () => {
-    service.isRegistered.mockReturnValue(false);
-    const ann = connect("Ann");
-    expect(() => gateway.handleMessage(ann, { to: "Zed", text: "hi" })).toThrow(
-      new WsException("Unknown recipient"),
-    );
-    expect(service.send).not.toHaveBeenCalled();
-  });
-});
-
-test("rejects messages past the rate limit", () => {
+test("delivers to every socket of sender and recipient in the session", () => {
   const ann = connect("Ann");
-  for (let i = 0; i < 20; i++)
-    gateway.handleMessage(ann, { to: "Bob", text: "hi" });
+  const annTab = connect("Ann");
+  const bob = connect("Bob");
+  const cid = connect("Cid");
+  const otherBob = connect("Bob", "654321");
 
-  expect(() => gateway.handleMessage(ann, { to: "Bob", text: "hi" })).toThrow(
-    new WsException("Too many messages, slow down"),
-  );
-  expect(service.send).toHaveBeenCalledTimes(20);
-});
-
-test("unknown-recipient attempts still count toward the rate limit", () => {
-  service.isRegistered.mockReturnValue(false);
-  const ann = connect("Ann");
-  for (let i = 0; i < 20; i++)
-    expect(() => gateway.handleMessage(ann, { to: "Zed", text: "hi" })).toThrow(
-      new WsException("Unknown recipient"),
-    );
-
-  expect(() => gateway.handleMessage(ann, { to: "Zed", text: "hi" })).toThrow(
-    new WsException("Too many messages, slow down"),
-  );
+  gateway.handleMessage(ann, { to: "Bob", text: "hi" });
+  expect(service.send).toHaveBeenCalledWith("123456", "Ann", "Bob", "hi");
+  for (const socket of [ann, annTab, bob])
+    expect(sent(socket).at(-1)).toEqual({ event: "message", data: message });
+  for (const socket of [cid, otherBob]) expect(sent(socket)).toHaveLength(1);
 });
 
 test("ending a session closes only its sockets", () => {
@@ -118,4 +89,31 @@ test("ending a session closes only its sockets", () => {
   eventBus.emit("session.ended", "123456");
   expect(ann.close).toHaveBeenCalledWith(4410, "Session ended");
   expect(other.close).not.toHaveBeenCalled();
+});
+
+describe("rate limit", () => {
+  afterEach(() => setSystemTime());
+
+  test("allows 20 messages per client every 10 seconds", () => {
+    const guard = new WsRateLimitGuard(new Reflector());
+    const context = wsContext(
+      MessageGateway.prototype.handleMessage,
+      fakeSocket(),
+    );
+    const start = Date.now();
+    setSystemTime(start);
+
+    for (let i = 0; i < 20; i++) expect(guard.canActivate(context)).toBe(true);
+    expect(() => guard.canActivate(context)).toThrow(
+      "Too many messages, slow down",
+    );
+
+    setSystemTime(start + 9999);
+    expect(() => guard.canActivate(context)).toThrow(
+      "Too many messages, slow down",
+    );
+
+    setSystemTime(start + 10_000);
+    expect(guard.canActivate(context)).toBe(true);
+  });
 });

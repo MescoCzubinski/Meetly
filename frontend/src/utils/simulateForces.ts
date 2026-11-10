@@ -13,13 +13,13 @@ const GAP = 24; // min space between cards, px
 
 const radius = (node: Node) => (node.width + node.height) / 4;
 
-export function simulateForces(
+export const simulateForces = (
   nodes: Map<string, Node>,
   links: Link[],
   width: number,
   height: number,
   pinned?: string,
-): number {
+): number => {
   const list = [...nodes.values()];
 
   for (let i = 0; i < list.length; i++) {
@@ -76,4 +76,4 @@ export function simulateForces(
     moved = Math.max(moved, Math.hypot(body.x - x, body.y - y));
   }
   return moved;
-}
+};

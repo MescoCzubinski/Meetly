@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { HttpException, Logger } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import {
   type OnGatewayConnection,
   type OnGatewayDisconnect,
@@ -8,6 +8,8 @@ import {
 import type { WebSocket } from "ws";
 import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
+import { DomainException } from "../../common/exceptions/domain.exception";
+import { HTTP_STATUS } from "../../common/exceptions/http-status";
 import { SessionService } from "../services/session.service";
 
 const MAX_ANONYMOUS_CONNECTIONS = 10;
@@ -52,9 +54,9 @@ export class SessionGateway
     try {
       this.sessionService.assertValidSession(code);
     } catch (error) {
-      if (!(error instanceof HttpException)) throw error;
+      if (!(error instanceof DomainException)) throw error;
       this.logger.warn(`Connection to ${code} rejected: ${error.message}`);
-      client.close(4000 + error.getStatus(), error.message);
+      client.close(4000 + HTTP_STATUS[error.kind].statusCode, error.message);
       return;
     }
 

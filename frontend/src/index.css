@@ -13,6 +13,8 @@
   --main-foreground: oklch(0% 0 0);
   --border: oklch(0% 0 0);
   --shadow: 4px 4px 0px 0px var(--border);
+  --overlay: oklch(0% 0 0 / 50%);
+  --text-stroke: 4px var(--border);
 }
 
 @theme inline {
@@ -24,6 +26,7 @@
   --color-main-foreground: var(--main-foreground);
   --color-border: var(--border);
   --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
   --spacing-boxShadowX: 4px;
   --spacing-boxShadowY: 4px;
   --spacing-reverseBoxShadowX: -4px;

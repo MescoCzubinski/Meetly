@@ -1,10 +1,11 @@
 import { randomInt } from "node:crypto";
-import { ForbiddenException, Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
 import { HostAuth } from "../../common/auth/host-auth";
 import { ParticipantAuth } from "../../common/auth/participant-auth";
 import { EventBus } from "../../common/events/event-bus";
 import { SessionNotFoundException } from "../exceptions/not-found";
 import { InvalidSessionCodeException } from "../exceptions/invalid-code";
+import { NotHostException } from "../exceptions/not-host";
 import {
   type Session,
   SessionRepository,
@@ -17,8 +18,12 @@ const CLEANUP_INTERVAL = 60 * 1000; // 1 minute
 const CODE_PATTERN = /^\d{6}$/;
 
 @Injectable()
-export class SessionService {
+export class SessionService implements OnModuleDestroy {
   private readonly logger = new Logger(SessionService.name);
+  private readonly cleanup = setInterval(
+    () => this.removeExpired(),
+    CLEANUP_INTERVAL,
+  );
   private readonly emptyTimers = new Map<string, NodeJS.Timeout>();
   private readonly connections = new Map<string, (string | undefined)[]>();
 
@@ -27,8 +32,10 @@ export class SessionService {
     private readonly eventBus: EventBus,
     private readonly hostAuth: HostAuth,
     private readonly participantAuth: ParticipantAuth,
-  ) {
-    setInterval(() => this.removeExpired(), CLEANUP_INTERVAL);
+  ) {}
+
+  onModuleDestroy(): void {
+    clearInterval(this.cleanup);
   }
 
   create(): { code: string; hostToken: string } {
@@ -48,10 +55,7 @@ export class SessionService {
 
   end(code: string, hostToken: string): void {
     this.assertValidSession(code);
-    if (!this.hostAuth.isHost(hostToken, code)) {
-      this.logger.warn(`Session ${code}: end rejected, invalid host token`);
-      throw new ForbiddenException("Only the host can end the session");
-    }
+    if (!this.hostAuth.isHost(hostToken, code)) throw new NotHostException();
     this.logger.log(`Session ${code} ended by host`);
     this.remove(code);
   }

@@ -3,16 +3,16 @@ import { MessageCircle, X } from "lucide-react";
 import { useMessages } from "@/hooks/useMessages";
 import { useInterests } from "@/hooks/useInterests";
 import { useSession } from "@/hooks/useSession";
-import InterestInput from "@/components/InterestInput";
-import LinkedGraph from "@/components/LinkedGraph";
-import ChatModal from "@/components/modals/ChatModal";
-import Modal from "@/components/modals/Modal";
+import { InterestInput } from "@/components/InterestInput";
+import { LinkedGraph } from "@/components/LinkedGraph";
+import { ChatModal } from "@/components/modals/ChatModal";
+import { Modal } from "@/components/modals/Modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
-export default function Room({
+export const Room = ({
   code,
   name,
   token,
@@ -22,7 +22,7 @@ export default function Room({
   name: string;
   token: string;
   onHome: () => void;
-}) {
+}) => {
   const { ended: sessionEnded } = useSession(code, token);
   const {
     answers,
@@ -61,8 +61,8 @@ export default function Room({
         <Card size="sm" className="w-full min-w-0">
           <CardContent className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
-              {interests.map((interest, index) => (
-                <Badge key={index} variant="neutral" className="text-base">
+              {interests.map((interest) => (
+                <Badge key={interest} variant="neutral" className="text-base">
                   {interest}
                   {interests.length > 1 && (
                     <button
@@ -70,7 +70,7 @@ export default function Room({
                       className="cursor-pointer"
                       aria-label={`Remove ${interest}`}
                       onClick={() =>
-                        sendInterests(interests.filter((_, i) => i !== index))
+                        sendInterests(interests.filter((i) => i !== interest))
                       }
                     >
                       <X />
@@ -83,6 +83,7 @@ export default function Room({
               Add an interest
             </Label>
             <InterestInput
+              interests={interests}
               onAdd={(interest) => sendInterests([...interests, interest])}
             />
           </CardContent>
@@ -112,4 +113,4 @@ export default function Room({
       </Modal>
     </div>
   );
-}
+};

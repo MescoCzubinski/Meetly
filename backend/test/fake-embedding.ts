@@ -6,11 +6,11 @@ export class FakeEmbeddingService implements Pick<
 > {
   embedded: string[][] = [];
 
-  async embed(code: string, texts: string[]): Promise<void> {
+  async embed(_code: string, texts: string[]): Promise<void> {
     this.embedded.push(texts);
   }
 
-  similarity(code: string, a: string, b: string): number {
+  similarity(_code: string, a: string, b: string): number {
     return a.toLowerCase() === b.toLowerCase() ? 1 : 0;
   }
 

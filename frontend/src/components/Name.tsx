@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Send } from "lucide-react";
-import InputWithButton from "@/components/InputWithButton";
+import { InputWithButton } from "@/components/InputWithButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
-export default function Name({
+export const Name = ({
   onSubmit,
+  pending,
 }: {
   onSubmit: (name: string) => void;
-}) {
+  pending: boolean;
+}) => {
   const [name, setName] = useState("");
 
   return (
@@ -28,10 +30,11 @@ export default function Name({
           value={name}
           onChange={(e) => setName(e.target.value)}
           onSubmit={onSubmit}
+          pending={pending}
           button={<Send />}
           buttonLabel="Next"
         />
       </CardContent>
     </Card>
   );
-}
+};

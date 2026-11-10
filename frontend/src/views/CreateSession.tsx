@@ -1,31 +1,39 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createSession } from "@/lib/api";
+import { sessionQuery } from "@/lib/queries";
 import { saveHostToken } from "@/lib/storage";
-import Container from "@/components/Container";
-import QRCode from "@/components/QRCode";
+import { Container } from "@/components/Container";
+import { QRCode } from "@/components/QRCode";
 import { Button } from "@/components/ui/button";
 
-export default function CreateSession({
+const MIN_SCRAMBLE = 600; // ms, so the code animation is seen even on a fast API
+
+export const CreateSession = ({
   onDone,
 }: {
   onDone: (code: string) => void;
-}) {
-  const [code, setCode] = useState("");
+}) => {
+  const queryClient = useQueryClient();
+  const { mutate, data } = useMutation({
+    mutationFn: async () => {
+      const [session] = await Promise.all([
+        createSession(),
+        new Promise((resolve) => setTimeout(resolve, MIN_SCRAMBLE)),
+      ]);
+      return session;
+    },
+    onSuccess: async (session) => {
+      saveHostToken(session.code, session.hostToken);
+      const { queryKey } = sessionQuery(session.code);
+      await queryClient.cancelQueries({ queryKey });
+      queryClient.setQueryData(queryKey, true);
+    },
+    throwOnError: true,
+  });
+  const code = data?.code ?? "";
 
-  useEffect(() => {
-    let ignore = false;
-    Promise.all([
-      createSession(),
-      new Promise((resolve) => setTimeout(resolve, 600)),
-    ]).then(([data]) => {
-      if (ignore) return;
-      saveHostToken(data.code, data.hostToken);
-      setCode(data.code);
-    });
-    return () => {
-      ignore = true;
-    };
-  }, []);
+  useEffect(() => mutate(), [mutate]);
 
   return (
     <Container>
@@ -42,4 +50,4 @@ export default function CreateSession({
       </div>
     </Container>
   );
-}
+};

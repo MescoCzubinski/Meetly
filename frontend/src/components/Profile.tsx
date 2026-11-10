@@ -1,11 +1,12 @@
 import { useCallback, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { useInterests } from "@/hooks/useInterests";
 import { useSession } from "@/hooks/useSession";
 import { joinSession } from "@/lib/api";
-import Name from "@/components/Name";
-import InterestInput from "@/components/InterestInput";
+import { Name } from "@/components/Name";
+import { InterestInput } from "@/components/InterestInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,17 +27,23 @@ const EXAMPLES = [
   "Board games",
 ];
 
-export default function Profile({
+export const Profile = ({
   code,
   onDone,
 }: {
   code: string;
   onDone: (name: string, token: string) => void;
-}) {
-  const [participant, setParticipant] = useState<{
-    name: string;
-    token: string;
-  }>();
+}) => {
+  const join = useMutation({
+    mutationFn: (name: string) => joinSession(code, name),
+    onError: () =>
+      toast.add({
+        type: "error",
+        title: "Could not join",
+        description: "Something went wrong, please try again",
+      }),
+  });
+  const participant = join.data;
   const [interests, setInterests] = useState<string[]>([]);
   useSession(code, participant?.token, true);
   const { ready, sendInterests } = useInterests(participant?.token);
@@ -49,36 +56,11 @@ export default function Profile({
     return () => observer.disconnect();
   }, []);
 
-  const addInterest = (interest: string) => {
-    const lower = interest.toLowerCase();
-    const existing = interests.find((i) => i.toLowerCase() === lower);
-    if (existing) {
-      toast.add({
-        type: "error",
-        title: "Already added",
-        description: `"${existing}" is already on your list`,
-      });
-      return;
-    }
+  const addInterest = (interest: string) =>
     setInterests([...interests, interest]);
-  };
 
   if (!participant)
-    return (
-      <Name
-        onSubmit={(name) =>
-          joinSession(code, name)
-            .then(setParticipant)
-            .catch(() =>
-              toast.add({
-                type: "error",
-                title: "Could not join",
-                description: "Something went wrong, please try again",
-              }),
-            )
-        }
-      />
-    );
+    return <Name onSubmit={join.mutate} pending={join.isPending} />;
 
   return (
     <Card className="w-full">
@@ -90,22 +72,22 @@ export default function Profile({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <InterestInput autoFocus onAdd={addInterest} />
+        <InterestInput autoFocus interests={interests} onAdd={addInterest} />
         <div
           style={{ height: badgesHeight }}
           className="overflow-hidden transition-[height] duration-300"
         >
           <div ref={measureBadges} className="flex flex-wrap gap-2">
             {interests.length > 0 ? (
-              interests.map((interest, index) => (
-                <Badge key={index} variant="neutral" className="text-base">
+              interests.map((interest) => (
+                <Badge key={interest} variant="neutral" className="text-base">
                   {interest}
                   <button
                     type="button"
                     className="cursor-pointer"
                     aria-label={`Remove ${interest}`}
                     onClick={() =>
-                      setInterests(interests.filter((_, i) => i !== index))
+                      setInterests(interests.filter((i) => i !== interest))
                     }
                   >
                     <X />
@@ -114,7 +96,7 @@ export default function Profile({
               ))
             ) : (
               <>
-                <span className="text-lg font-heading text-white [-webkit-text-stroke:4px_var(--border)] [paint-order:stroke_fill]">
+                <span className="text-lg font-heading text-background [-webkit-text-stroke:var(--text-stroke)] [paint-order:stroke_fill]">
                   E.g.
                 </span>
                 {EXAMPLES.map((example) => (
@@ -149,4 +131,4 @@ export default function Profile({
       </CardFooter>
     </Card>
   );
-}
+};

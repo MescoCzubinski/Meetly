@@ -3,6 +3,7 @@ import { WS_URL } from "@/lib/config";
 import { closeSocket } from "@/lib/socket";
 
 export type ChatMessage = {
+  id: string;
   from: string;
   to: string;
   text: string;

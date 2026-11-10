@@ -11,16 +11,18 @@ const centerOnKeyboard = (el: HTMLElement) =>
     { once: true },
   );
 
-export default function InputWithButton({
+export const InputWithButton = ({
   onSubmit,
   button,
   buttonLabel,
+  pending = false,
   ...inputProps
 }: Omit<React.ComponentProps<"input">, "onSubmit"> & {
   onSubmit: (value: string) => void;
   button: React.ReactNode;
   buttonLabel?: string;
-}) {
+  pending?: boolean;
+}) => {
   return (
     <form
       className="flex w-full items-center space-x-2"
@@ -51,9 +53,10 @@ export default function InputWithButton({
         variant="noShadow"
         className="h-12 min-w-12 shrink-0 px-3 text-lg [&_svg]:size-6"
         aria-label={buttonLabel}
+        disabled={pending}
       >
         {button}
       </Button>
     </form>
   );
-}
+};

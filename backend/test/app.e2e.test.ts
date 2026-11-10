@@ -8,12 +8,14 @@ import {
 } from "bun:test";
 import type { AddressInfo } from "node:net";
 import type { INestApplication } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
 import { AppModule } from "../src/app.module";
 import { EmbeddingService } from "../src/interest/services/embedding.service";
 import { FakeEmbeddingService } from "./fake-embedding";
+
+type Answer = { name: string; interests: string[]; active: boolean };
+type Frame<T> = { event: string; data: T };
 
 let app: INestApplication;
 let base: string;
@@ -23,8 +25,6 @@ beforeAll(async () => {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(EmbeddingService)
     .useValue(new FakeEmbeddingService())
-    .overrideProvider(JwtService)
-    .useValue(new JwtService({ secret: "secret" }))
     .compile();
   app = moduleRef.createNestApplication({ logger: false });
   app.setGlobalPrefix("api");
@@ -42,33 +42,33 @@ afterAll(() => {
   void app.close();
 });
 
-function http(method: string, path: string, init: RequestInit = {}) {
+const http = (method: string, path: string, init: RequestInit = {}) => {
   return fetch(`http://${base}/api${path}`, {
     method,
     ...init,
     headers: { "content-type": "application/json", ...init.headers },
   });
-}
+};
 
-async function createSession() {
+const createSession = async () => {
   const res = await http("POST", "/sessions");
   expect(res.status).toBe(201);
   return (await res.json()) as { code: string; hostToken: string };
-}
+};
 
-async function register(code: string, name: string) {
+const register = async (code: string, name: string) => {
   const res = await http("POST", `/sessions/${code}/participants`, {
     body: JSON.stringify({ name }),
   });
   expect(res.status).toBe(201);
   return (await res.json()) as { name: string; token: string };
-}
+};
 
-function connect(path: string, query: string) {
+const connect = (path: string, query: string) => {
   const socket = new WebSocket(`ws://${base}/api${path}?${query}`);
   sockets.push(socket);
   const inbox: unknown[] = [];
-  const waiting: ((message: any) => void)[] = [];
+  const waiting: ((message: unknown) => void)[] = [];
   socket.onmessage = (e) => {
     const message = JSON.parse(e.data as string);
     const resolve = waiting.shift();
@@ -84,15 +84,17 @@ function connect(path: string, query: string) {
   return {
     opened,
     closed,
-    next: (): Promise<any> =>
+    next: <T = object>(): Promise<NoInfer<T>> =>
       inbox.length > 0
-        ? Promise.resolve(inbox.shift())
-        : new Promise((resolve) => waiting.push(resolve)),
+        ? Promise.resolve(inbox.shift() as T)
+        : new Promise<T>((resolve) =>
+            waiting.push((message) => resolve(message as T)),
+          ),
     send: (event: string, data: unknown) =>
       socket.send(JSON.stringify({ event, data })),
     close: () => socket.close(),
   };
-}
+};
 
 describe("health", () => {
   test("GET /health", async () => {
@@ -114,8 +116,21 @@ describe("sessions over HTTP", () => {
   });
 
   test("rejects malformed and unknown codes", async () => {
-    expect((await http("GET", "/sessions/abc")).status).toBe(400);
-    expect((await http("GET", "/sessions/000000")).status).toBe(404);
+    const malformed = await http("GET", "/sessions/abc");
+    expect(malformed.status).toBe(400);
+    expect(await malformed.json()).toEqual({
+      statusCode: 400,
+      error: "Bad Request",
+      message: "Code must be 6 digits long",
+    });
+
+    const unknown = await http("GET", "/sessions/000000");
+    expect(unknown.status).toBe(404);
+    expect(await unknown.json()).toEqual({
+      statusCode: 404,
+      error: "Not Found",
+      message: "Session 000000 not found",
+    });
   });
 
   test("validates participant names", async () => {
@@ -230,9 +245,9 @@ describe("interests", () => {
     expect(await bobWs.next()).toEqual(expected);
 
     cidWs.send("interest", { interests: ["go"] });
-    expect((await cidWs.next()).data.answers).toEqual([
-      { name: "Cid", interests: ["go"], active: true },
-    ]);
+    expect(
+      (await cidWs.next<Frame<{ answers: Answer[] }>>()).data.answers,
+    ).toEqual([{ name: "Cid", interests: ["go"], active: true }]);
   });
 
   test("invalid answers are rejected", async () => {
@@ -246,6 +261,8 @@ describe("interests", () => {
       { interests: ["A".repeat(21)] },
       { interests: "chess" },
       { interests: [5] },
+      { interests: ["  "] },
+      { interests: ["chess", "Chess"] },
     ];
     for (const data of invalid) {
       ws.send("interest", data);
@@ -256,9 +273,9 @@ describe("interests", () => {
     }
 
     ws.send("interest", { interests: ["go"] });
-    expect((await ws.next()).data.answers).toEqual([
-      { name: "Ann", interests: ["go"], active: true },
-    ]);
+    expect(
+      (await ws.next<Frame<{ answers: Answer[] }>>()).data.answers,
+    ).toEqual([{ name: "Ann", interests: ["go"], active: true }]);
   });
 
   test("a participant leaving the session is marked inactive", async () => {
@@ -277,13 +294,15 @@ describe("interests", () => {
     await bobWs.next();
 
     annSession.close();
-    expect((await bobWs.next()).data.answers).toEqual([
-      { name: "Ann", interests: ["chess"], active: false },
-    ]);
+    expect(
+      (await bobWs.next<Frame<{ answers: Answer[] }>>()).data.answers,
+    ).toEqual([{ name: "Ann", interests: ["chess"], active: false }]);
 
     const rejoined = connect("/session", `token=${ann.token}`);
     await rejoined.opened;
-    expect((await bobWs.next()).data.answers[0].active).toBe(true);
+    expect(
+      (await bobWs.next<Frame<{ answers: Answer[] }>>()).data.answers[0].active,
+    ).toBe(true);
   });
 });
 
@@ -307,7 +326,13 @@ describe("messages", () => {
     annWs.send("message", { to: "Bob", text: "hi" });
     const expected = {
       event: "message",
-      data: { from: "Ann", to: "Bob", text: "hi", sentAt: expect.any(Number) },
+      data: {
+        id: expect.any(String),
+        from: "Ann",
+        to: "Bob",
+        text: "hi",
+        sentAt: expect.any(Number),
+      },
     };
     for (const ws of [annWs, annTab, bobWs])
       expect(await ws.next()).toEqual(expected);
@@ -317,7 +342,7 @@ describe("messages", () => {
       [otherBobWs, "Bob"],
     ] as const) {
       ws.send("message", { to: from, text: "note to self" });
-      expect((await ws.next()).data).toMatchObject({
+      expect((await ws.next<Frame<object>>()).data).toMatchObject({
         from,
         text: "note to self",
       });
@@ -352,7 +377,10 @@ describe("messages", () => {
     });
 
     ws.send("message", { to: "Bob", text: "ok" });
-    expect((await ws.next()).data).toMatchObject({ to: "Bob", text: "ok" });
+    expect((await ws.next<Frame<object>>()).data).toMatchObject({
+      to: "Bob",
+      text: "ok",
+    });
   });
 
   test("history is replayed on reconnect", async () => {
@@ -369,9 +397,33 @@ describe("messages", () => {
     expect(await bobWs.next()).toEqual({
       event: "messages",
       data: [
-        { from: "Ann", to: "Bob", text: "hi", sentAt: expect.any(Number) },
+        {
+          id: expect.any(String),
+          from: "Ann",
+          to: "Bob",
+          text: "hi",
+          sentAt: expect.any(Number),
+        },
       ],
     });
+  });
+
+  test("rejected attempts count toward the rate limit", async () => {
+    const { code } = await createSession();
+    const ann = await register(code, "Ann");
+    const ws = connect("/messages", `token=${ann.token}`);
+    await ws.next();
+
+    for (let i = 0; i < 20; i++) {
+      ws.send("message", { to: "Zed", text: "hi" });
+      expect((await ws.next<Frame<{ message: string }>>()).data.message).toBe(
+        "Unknown recipient",
+      );
+    }
+    ws.send("message", { to: "Zed", text: "hi" });
+    expect((await ws.next<Frame<{ message: string }>>()).data.message).toBe(
+      "Too many messages, slow down",
+    );
   });
 });
 

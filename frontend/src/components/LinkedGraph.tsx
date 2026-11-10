@@ -6,7 +6,7 @@ import { simulateForces, type Body } from "@/utils/simulateForces";
 
 const SETTLED = 0.05;
 
-export default function LinkedGraph({
+export const LinkedGraph = ({
   answers,
   links,
   own,
@@ -16,7 +16,7 @@ export default function LinkedGraph({
   links: Link[];
   own: string;
   onSelect: (name: string) => void;
-}) {
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const bodies = useRef(new Map<string, Body>());
   const cards = useRef(new Map<string, HTMLDivElement>());
@@ -138,6 +138,15 @@ export default function LinkedGraph({
               onSelect(res.name);
           }}
           onPointerCancel={() => (drag.current = null)}
+          role={res.name === own ? undefined : "button"}
+          tabIndex={res.name === own ? undefined : 0}
+          aria-label={res.name === own ? undefined : `Chat with ${res.name}`}
+          onKeyDown={(e) => {
+            if (res.name === own || (e.key !== "Enter" && e.key !== " "))
+              return;
+            e.preventDefault();
+            onSelect(res.name);
+          }}
           className="absolute top-0 left-0 w-max max-w-58 cursor-grab touch-none select-none active:z-10 active:cursor-grabbing"
         >
           <Card
@@ -148,8 +157,8 @@ export default function LinkedGraph({
               <CardTitle className="text-lg">{res.name}</CardTitle>
             </CardContent>
             <CardContent className="flex flex-wrap gap-1">
-              {res.interests.map((interest, i) => (
-                <Badge key={i} variant="neutral">
+              {res.interests.map((interest) => (
+                <Badge key={interest} variant="neutral">
                   {interest}
                 </Badge>
               ))}
@@ -159,4 +168,4 @@ export default function LinkedGraph({
       ))}
     </div>
   );
-}
+};
