@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createSession } from "@/lib/api";
+import { sessionQuery } from "@/lib/queries";
 import { saveHostToken } from "@/lib/storage";
 import { Container } from "@/components/Container";
 import { QRCode } from "@/components/QRCode";
@@ -13,6 +14,7 @@ export const CreateSession = ({
 }: {
   onDone: (code: string) => void;
 }) => {
+  const queryClient = useQueryClient();
   const { mutate, data } = useMutation({
     mutationFn: async () => {
       const [session] = await Promise.all([
@@ -21,7 +23,12 @@ export const CreateSession = ({
       ]);
       return session;
     },
-    onSuccess: (session) => saveHostToken(session.code, session.hostToken),
+    onSuccess: async (session) => {
+      saveHostToken(session.code, session.hostToken);
+      const { queryKey } = sessionQuery(session.code);
+      await queryClient.cancelQueries({ queryKey });
+      queryClient.setQueryData(queryKey, true);
+    },
     throwOnError: true,
   });
   const code = data?.code ?? "";

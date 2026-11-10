@@ -51,8 +51,6 @@ export class SessionGateway
       return;
     }
     const { code, name } = participant;
-    // Exception filters don't run for connection hooks, so the mapping to a
-    // close code (4000 + HTTP status) happens here.
     try {
       this.sessionService.assertValidSession(code);
     } catch (error) {

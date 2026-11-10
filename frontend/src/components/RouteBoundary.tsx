@@ -52,7 +52,17 @@ export const RouteBoundary = ({
           </Container>
         )}
       >
-        <Suspense fallback={null}>{children}</Suspense>
+        <Suspense
+          fallback={
+            <Container>
+              <p role="status" className="text-lg font-heading">
+                Loading…
+              </p>
+            </Container>
+          }
+        >
+          {children}
+        </Suspense>
       </ErrorBoundary>
     )}
   </QueryErrorResetBoundary>

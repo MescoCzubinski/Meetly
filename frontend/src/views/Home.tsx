@@ -28,12 +28,12 @@ export const Home = ({
   const queryClient = useQueryClient();
 
   const codes = [...new Set(sessions.map((s) => s.code))];
-  const exists = useQueries({
+  const lookups = useQueries({
     queries: codes.map((code) => sessionQuery(code)),
-    combine: (results) => results.map((result) => result.data),
   });
-  const active = sessions.filter((s) => exists[codes.indexOf(s.code)]);
-  const ended = codes.filter((_, i) => exists[i] === false);
+  const active = sessions.filter((s) => lookups[codes.indexOf(s.code)].data);
+  const ended = codes.filter((_, i) => lookups[i].data === false);
+  const failed = lookups.filter((l) => l.isError && l.data === undefined);
 
   useEffect(() => {
     if (ended.length > 0) onEnded(ended);
@@ -96,7 +96,7 @@ export const Home = ({
             />
           </CardContent>
         </Card>
-        {active.length > 0 && (
+        {(active.length > 0 || failed.length > 0) && (
           <Card className="w-full">
             <CardHeader>
               <CardTitle>
@@ -115,6 +115,20 @@ export const Home = ({
                   <span>as {session.name}</span>
                 </Button>
               ))}
+              {failed.length > 0 && (
+                <div role="alert" className="flex flex-col gap-2">
+                  <p>Could not check some of your sessions.</p>
+                  <Button
+                    className="w-full"
+                    disabled={failed.some((l) => l.isFetching)}
+                    onClick={() =>
+                      void Promise.all(failed.map((l) => l.refetch()))
+                    }
+                  >
+                    Try again
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

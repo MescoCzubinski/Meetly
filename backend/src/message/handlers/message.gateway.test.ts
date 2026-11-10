@@ -1,12 +1,23 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  setSystemTime,
+  test,
+} from "bun:test";
+import { Reflector } from "@nestjs/core";
 import {
   fakeRequest,
   fakeSocket,
   participantAuth,
   sent,
   tokenRequest,
+  wsContext,
 } from "../../../test/fakes";
 import { EventBus } from "../../common/events/event-bus";
+import { WsRateLimitGuard } from "../../common/rate-limit.guard";
 import type { MessageService } from "../services/message.service";
 import { MessageGateway } from "./message.gateway";
 
@@ -78,4 +89,31 @@ test("ending a session closes only its sockets", () => {
   eventBus.emit("session.ended", "123456");
   expect(ann.close).toHaveBeenCalledWith(4410, "Session ended");
   expect(other.close).not.toHaveBeenCalled();
+});
+
+describe("rate limit", () => {
+  afterEach(() => setSystemTime());
+
+  test("allows 20 messages per client every 10 seconds", () => {
+    const guard = new WsRateLimitGuard(new Reflector());
+    const context = wsContext(
+      MessageGateway.prototype.handleMessage,
+      fakeSocket(),
+    );
+    const start = Date.now();
+    setSystemTime(start);
+
+    for (let i = 0; i < 20; i++) expect(guard.canActivate(context)).toBe(true);
+    expect(() => guard.canActivate(context)).toThrow(
+      "Too many messages, slow down",
+    );
+
+    setSystemTime(start + 9999);
+    expect(() => guard.canActivate(context)).toThrow(
+      "Too many messages, slow down",
+    );
+
+    setSystemTime(start + 10_000);
+    expect(guard.canActivate(context)).toBe(true);
+  });
 });

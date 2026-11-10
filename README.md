@@ -78,7 +78,7 @@ Then set `JWT_SECRET`, for example to the output of `openssl rand -hex 32`. Both
 
 | Variable       | Used by  | Description                                    |
 | -------------- | -------- | ---------------------------------------------- |
-| `PORT`         | backend  | Port of the API (default `8080`).              |
+| `PORT`         | backend  | Port of the API, e.g. `8080`.                  |
 | `CORS_ORIGIN`  | backend  | URL of the frontend allowed to call the API.   |
 | `JWT_SECRET`   | backend  | Secret that signs host and participant tokens. |
 | `VITE_API_URL` | frontend | Origin of the API (`/api` is appended).        |

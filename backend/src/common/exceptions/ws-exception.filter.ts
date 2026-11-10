@@ -7,9 +7,7 @@ import {
 import { BaseWsExceptionFilter, WsException } from "@nestjs/websockets";
 import { DomainException } from "./domain.exception";
 
-// The global ValidationPipe also runs on gateway payloads and throws
-// BadRequestException there, which the base filter would report as an
-// internal error.
+// Without this, ValidationPipe errors on gateways surface as internal errors.
 @Catch(DomainException, BadRequestException)
 export class WsExceptionFilter extends BaseWsExceptionFilter {
   private readonly logger = new Logger(WsExceptionFilter.name);
